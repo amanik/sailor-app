@@ -55,14 +55,14 @@ function BucketBreakdown({
   readonly title: string;
   readonly buckets: readonly { readonly label: string; readonly value: number; readonly count: number }[];
 }) {
-  const maxValue = Math.max(...buckets.map((b) => b.value), 1);
+  const totalValue = buckets.reduce((sum, b) => sum + b.value, 0);
 
   return (
     <section className="flex flex-col gap-2">
       <p className="section-label px-1">{title}</p>
       <div className="rounded-xl border border-border-secondary bg-bg-primary p-4 shadow-sm flex flex-col gap-3">
         {buckets.map((bucket) => {
-          const pct = Math.round((bucket.value / maxValue) * 100);
+          const pctOfTotal = totalValue > 0 ? Math.round((bucket.value / totalValue) * 100) : 0;
           return (
             <div key={bucket.label} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
@@ -70,13 +70,13 @@ function BucketBreakdown({
                   {bucket.label}
                 </span>
                 <span className="text-[11px] font-semibold text-text-primary tabular-nums">
-                  {formatCurrency(bucket.value)} · {bucket.count}
+                  {pctOfTotal}% · {formatCurrency(bucket.value)}
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-bg-secondary overflow-hidden">
                 <div
                   className="h-full rounded-full bg-fg-primary transition-all duration-500"
-                  style={{ width: `${pct}%` }}
+                  style={{ width: `${pctOfTotal}%` }}
                 />
               </div>
             </div>

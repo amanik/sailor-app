@@ -621,42 +621,6 @@ export default function InsightsPage() {
           ═══════════════════════════════════════════════════════ */}
           <TabsContent value="overview" className="pt-4">
             <div className="flex flex-col gap-6">
-              {/* Cashflow Waterfall */}
-              <section className="flex flex-col gap-2">
-                <p className="section-label">Cashflow Waterfall</p>
-                <p className="text-[11px] text-text-tertiary -mt-1 mb-1">
-                  Build your safety system: buffer first, then working capital, then taxes.
-                </p>
-                <WaterfallMeter
-                  label="Buffer"
-                  icon={ShieldCheck}
-                  current={waterfallHealth.checkingBalance}
-                  target={waterfallHealth.bufferTarget}
-                  description="1 month of expenses in checking"
-                  subtitle="Your business checking balance vs. 1 month of expenses"
-                />
-                <WaterfallMeter
-                  label="Working Capital"
-                  icon={Wallet}
-                  current={waterfallHealth.wcCurrent}
-                  target={waterfallHealth.wcTarget}
-                  description="2 months of expenses in savings"
-                  subtitle="Your business savings balance vs. 2 months of expenses"
-                />
-                {waterfallHealth.taxTarget > 0 && (
-                  <Link href="/insights/taxes" className="block">
-                    <WaterfallMeter
-                      label="Tax Savings"
-                      icon={Building2}
-                      current={waterfallHealth.taxSaved}
-                      target={waterfallHealth.taxTarget}
-                      description="Estimated quarterly liability → Tap to calculate"
-                      subtitle="Set aside from your tax buckets"
-                    />
-                  </Link>
-                )}
-              </section>
-
               {/* Smart Alerts */}
               {alerts.length > 0 && (
                 <section className="flex flex-col gap-2">

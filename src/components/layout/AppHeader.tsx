@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react";
 const TOP_LEVEL_PATHS = ["/", "/insights", "/accounts", "/upload"];
 
 const PAGE_TITLES: Record<string, string> = {
-  "/insights": "Insights",
+  "/insights": "Patterns",
   "/accounts": "Accounts",
   "/upload": "Upload",
   "/review": "Review",

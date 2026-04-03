@@ -7,7 +7,7 @@ import { LayoutDashboard, BarChart3, CreditCard, Upload, CheckSquare } from "luc
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/insights", label: "Insights", icon: BarChart3 },
+  { href: "/insights", label: "Patterns", icon: BarChart3 },
   { href: "/accounts", label: "Accounts", icon: CreditCard },
   { href: "/upload", label: "Upload", icon: Upload },
 ] as const;

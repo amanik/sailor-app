@@ -18,8 +18,9 @@ const GAUGE_HEIGHT = 130;
 const CENTER_X = GAUGE_WIDTH / 2;
 const CENTER_Y = GAUGE_HEIGHT - 10;
 const RADIUS = 90;
-const TICK_OUTER = RADIUS + 8;
-const TICK_INNER = RADIUS - 8;
+const DOT_RADIUS_ACTIVE = 7;
+const DOT_RADIUS_FILLED = 5;
+const DOT_RADIUS_EMPTY = 3.5;
 
 function valueToAngle(value: number, min: number, max: number): number {
   const fraction = (value - min) / (max - min);
@@ -112,37 +113,24 @@ export function RatingGauge({
     isDragging.current = false;
   }, []);
 
-  // Build tick marks
-  const ticks = [];
+  // Build dots on the arc
+  const dots = [];
   for (let i = min; i <= max; i++) {
     const angle = valueToAngle(i, min, max);
-    const outer = polarToCartesian(CENTER_X, CENTER_Y, TICK_OUTER, angle);
-    const inner = polarToCartesian(CENTER_X, CENTER_Y, TICK_INNER, angle);
-    const labelPos = polarToCartesian(CENTER_X, CENTER_Y, TICK_OUTER + 12, angle);
-    ticks.push(
-      <g key={i}>
-        <line
-          x1={inner.x}
-          y1={inner.y}
-          x2={outer.x}
-          y2={outer.y}
-          stroke={i <= value ? "var(--color-text-primary)" : "var(--color-border-secondary)"}
-          strokeWidth={i === value ? 2.5 : 1.5}
-          strokeLinecap="round"
-        />
-        <text
-          x={labelPos.x}
-          y={labelPos.y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill={i === value ? "var(--color-text-primary)" : "var(--color-text-tertiary)"}
-          fontSize={i === value ? 11 : 9}
-          fontWeight={i === value ? 700 : 400}
-          fontFamily="var(--font-geist-sans), system-ui, sans-serif"
-        >
-          {i}
-        </text>
-      </g>,
+    const pos = polarToCartesian(CENTER_X, CENTER_Y, RADIUS, angle);
+    const isActive = i === value;
+    const isFilled = i <= value;
+    const r = isActive ? DOT_RADIUS_ACTIVE : isFilled ? DOT_RADIUS_FILLED : DOT_RADIUS_EMPTY;
+    dots.push(
+      <circle
+        key={i}
+        cx={pos.x}
+        cy={pos.y}
+        r={r}
+        fill={isFilled ? "var(--color-text-primary)" : "none"}
+        stroke={isFilled ? "var(--color-text-primary)" : "var(--color-border-secondary)"}
+        strokeWidth={isFilled ? 0 : 1.5}
+      />,
     );
   }
 
@@ -150,10 +138,6 @@ export function RatingGauge({
   const bgArc = describeArc(CENTER_X, CENTER_Y, RADIUS, Math.PI, 0);
   const fillAngle = valueToAngle(value, min, max);
   const fillArc = describeArc(CENTER_X, CENTER_Y, RADIUS, Math.PI, fillAngle);
-
-  // Needle indicator dot position
-  const needleAngle = valueToAngle(value, min, max);
-  const needlePos = polarToCartesian(CENTER_X, CENTER_Y, RADIUS, needleAngle);
 
   const message = messages[value] ?? "";
 
@@ -194,18 +178,8 @@ export function RatingGauge({
           animate={{ d: fillArc }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />
-        {/* Tick marks + numbers */}
-        {ticks}
-        {/* Needle dot */}
-        <motion.circle
-          cx={needlePos.x}
-          cy={needlePos.y}
-          r={5}
-          fill="var(--color-text-primary)"
-          initial={false}
-          animate={{ cx: needlePos.x, cy: needlePos.y }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
+        {/* Increment dots on arc */}
+        {dots}
       </svg>
 
       {/* Large number */}

@@ -49,7 +49,6 @@ function StatCard({
 
 function ScoreContent({ monthKey }: { readonly monthKey: string }) {
   const allTransactions = useTransactionStore((s) => s.transactions);
-  const notes = useTransactionStore((s) => s.notes);
   const accounts = useAccountStore((s) => s.accounts);
 
   const transactions = useMemo(
@@ -119,57 +118,41 @@ function ScoreContent({ monthKey }: { readonly monthKey: string }) {
   );
 
   // Review progress
-  const bizUnreviewed = useMemo(
-    () =>
-      selectUnreviewedByType(
-        { transactions, notes },
-        "business",
-        businessAccountIds
-      ).length,
-    [transactions, notes, businessAccountIds]
-  );
-
-  const bizTotal = useMemo(
+  // Review progress — count only expenses (amount > 0) for consistency
+  const bizExpenses = useMemo(
     () =>
       transactions.filter(
         (t) =>
           businessAccountIds.includes(t.accountId) &&
           t.amount > 0 &&
           !t.isTransfer
-      ).length,
+      ),
     [transactions, businessAccountIds]
   );
 
-  const personalUnreviewed = useMemo(
-    () =>
-      selectUnreviewedByType(
-        { transactions, notes },
-        "personal",
-        personalAccountIds
-      ).length,
-    [transactions, notes, personalAccountIds]
-  );
+  const bizTotal = bizExpenses.length;
+  const bizReviewed = bizExpenses.filter((t) => t.reviewed).length;
 
-  const personalTotal = useMemo(
+  const personalExpenses = useMemo(
     () =>
       transactions.filter(
         (t) =>
           personalAccountIds.includes(t.accountId) &&
           t.amount > 0 &&
           !t.isTransfer
-      ).length,
+      ),
     [transactions, personalAccountIds]
   );
 
-  const bizReviewed = bizTotal - bizUnreviewed;
-  const personalReviewed = personalTotal - personalUnreviewed;
+  const personalTotal = personalExpenses.length;
+  const personalReviewed = personalExpenses.filter((t) => t.reviewed).length;
 
   return (
     <div className="flex flex-col gap-5">
       {/* Spending Score */}
-      <section className="flex flex-col items-center gap-2 rounded-xl border border-border-secondary bg-bg-primary py-6 shadow-sm">
+      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
         <p className="section-label">Spending Score</p>
-        <HalfPieGauge score={score} label="Score" />
+        <HalfPieGauge score={score} size={140} />
       </section>
 
       {/* Total Cash on Hand */}
@@ -305,11 +288,12 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
       />
 
       {/* Joy Spend Score */}
-      <section className="flex flex-col items-center gap-2 rounded-xl border border-border-secondary bg-bg-primary py-6 shadow-sm">
+      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
         <p className="section-label">Joy Spend Score</p>
         <HalfPieGauge
           score={joyScore}
-          subtitle={`${joyPercentage}% of personal spend went towards meaningful connections, joy, or self-care`}
+          size={140}
+          subtitle={`${joyPercentage}% towards meaningful spend`}
         />
       </section>
 
@@ -415,11 +399,12 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
       />
 
       {/* ROI Optimization Score */}
-      <section className="flex flex-col items-center gap-2 rounded-xl border border-border-secondary bg-bg-primary py-6 shadow-sm">
+      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
         <p className="section-label">ROI Optimization Score</p>
         <HalfPieGauge
           score={roiScore}
-          subtitle={`${roiPercentage}% of business spend went towards high-ROI growth initiatives`}
+          size={140}
+          subtitle={`${roiPercentage}% towards high-ROI spend`}
         />
       </section>
 

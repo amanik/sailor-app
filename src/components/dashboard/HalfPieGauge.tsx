@@ -18,7 +18,7 @@ export function HalfPieGauge({
   subtitle,
 }: HalfPieGaugeProps) {
   const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
-  const strokeWidth = 14;
+  const strokeWidth = size >= 160 ? 14 : 10;
   const r = (size - strokeWidth) / 2;
   // Half circle: arc length is pi * r
   const halfCircumference = Math.PI * r;
@@ -54,7 +54,7 @@ export function HalfPieGauge({
           y={size / 2 - 8}
           textAnchor="middle"
           dominantBaseline="auto"
-          className="fill-text-primary text-[36px] font-bold tracking-tighter"
+          className={`fill-text-primary font-bold tracking-tighter ${size >= 160 ? "text-[36px]" : "text-[28px]"}`}
           style={{ fontFamily: "var(--font-geist-sans)" }}
         >
           {clampedScore}

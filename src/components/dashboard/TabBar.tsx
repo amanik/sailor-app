@@ -3,7 +3,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { ReactNode } from "react";
 
-const tabs = ["Score", "Personal", "Business"] as const;
+const tabs = ["Personal", "Business"] as const;
 export type DashboardTab = (typeof tabs)[number];
 
 interface TabBarProps {
@@ -11,7 +11,7 @@ interface TabBarProps {
   readonly children?: Record<DashboardTab, ReactNode>;
 }
 
-export function TabBar({ defaultTab = "Score", children }: TabBarProps) {
+export function TabBar({ defaultTab = "Personal", children }: TabBarProps) {
   return (
     <Tabs defaultValue={defaultTab}>
       <TabsList

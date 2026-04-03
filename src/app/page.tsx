@@ -13,7 +13,6 @@ import {
 import { useAccountStore } from "@/stores/accounts";
 import { formatCurrency } from "@/lib/format";
 import {
-  calcOverallScore,
   calcJoySpendScore,
   calcRoiOptimizationScore,
   groupByMeaningCategory,
@@ -41,167 +40,6 @@ function StatCard({
       >
         {value}
       </p>
-    </div>
-  );
-}
-
-// ─── Score Tab ──────────────────────────────────────────────
-
-function ScoreContent({ monthKey }: { readonly monthKey: string }) {
-  const allTransactions = useTransactionStore((s) => s.transactions);
-  const accounts = useAccountStore((s) => s.accounts);
-
-  const transactions = useMemo(
-    () => filterByMonth(allTransactions, monthKey),
-    [allTransactions, monthKey]
-  );
-
-  const businessAccountIds = useMemo(
-    () => accounts.filter((a) => a.type === "business").map((a) => a.id),
-    [accounts]
-  );
-
-  const personalAccountIds = useMemo(
-    () => accounts.filter((a) => a.type === "personal").map((a) => a.id),
-    [accounts]
-  );
-
-  const allAccountIds = useMemo(
-    () => accounts.map((a) => a.id),
-    [accounts]
-  );
-
-  // Income (all accounts)
-  const totalIncome = useMemo(() => {
-    return Math.abs(
-      transactions
-        .filter(
-          (t) =>
-            allAccountIds.includes(t.accountId) &&
-            t.amount < 0 &&
-            !t.isTransfer
-        )
-        .reduce((sum, t) => sum + t.amount, 0)
-    );
-  }, [transactions, allAccountIds]);
-
-  // Expenses (all accounts)
-  const totalExpenses = useMemo(() => {
-    return transactions
-      .filter(
-        (t) =>
-          allAccountIds.includes(t.accountId) &&
-          t.amount > 0 &&
-          !t.isTransfer
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions, allAccountIds]);
-
-  // Cash on hand
-  const totalCash = useMemo(() => {
-    return accounts
-      .filter((a) => a.category !== "loan" && a.category !== "line_of_credit")
-      .reduce((sum, a) => sum + Math.max(0, a.balance), 0);
-  }, [accounts]);
-
-  // Score
-  const score = useMemo(
-    () =>
-      calcOverallScore(
-        totalIncome,
-        totalExpenses,
-        transactions,
-        totalCash,
-        totalExpenses
-      ),
-    [totalIncome, totalExpenses, transactions, totalCash]
-  );
-
-  // Review progress
-  // Review progress — count only expenses (amount > 0) for consistency
-  const bizExpenses = useMemo(
-    () =>
-      transactions.filter(
-        (t) =>
-          businessAccountIds.includes(t.accountId) &&
-          t.amount > 0 &&
-          !t.isTransfer
-      ),
-    [transactions, businessAccountIds]
-  );
-
-  const bizTotal = bizExpenses.length;
-  const bizReviewed = bizExpenses.filter((t) => t.reviewed).length;
-
-  const personalExpenses = useMemo(
-    () =>
-      transactions.filter(
-        (t) =>
-          personalAccountIds.includes(t.accountId) &&
-          t.amount > 0 &&
-          !t.isTransfer
-      ),
-    [transactions, personalAccountIds]
-  );
-
-  const personalTotal = personalExpenses.length;
-  const personalReviewed = personalExpenses.filter((t) => t.reviewed).length;
-
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Spending Score */}
-      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
-        <p className="section-label">Spending Score</p>
-        <HalfPieGauge score={score} size={140} />
-      </section>
-
-      {/* Total Cash on Hand */}
-      <StatCard label="Total Cash on Hand" value={formatCurrency(totalCash)} />
-
-      {/* Review Progress */}
-      <section className="flex flex-col gap-2 rounded-xl border border-border-secondary bg-bg-primary px-4 py-4 shadow-sm">
-        <p className="section-label">Review Progress</p>
-        <div className="flex flex-col gap-2">
-          <ReviewProgressRow
-            label="Business"
-            reviewed={bizReviewed}
-            total={bizTotal}
-          />
-          <ReviewProgressRow
-            label="Personal"
-            reviewed={personalReviewed}
-            total={personalTotal}
-          />
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function ReviewProgressRow({
-  label,
-  reviewed,
-  total,
-}: {
-  readonly label: string;
-  readonly reviewed: number;
-  readonly total: number;
-}) {
-  const pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between">
-        <p className="text-[12px] font-semibold text-text-primary">{label}</p>
-        <p className="font-mono text-[11px] text-text-tertiary tabular-nums">
-          {reviewed} of {total}
-        </p>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-secondary">
-        <div
-          className="h-full rounded-full bg-fg-primary transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
     </div>
   );
 }
@@ -476,9 +314,8 @@ export default function DashboardPage() {
         </div>
 
         <TabBar
-          defaultTab="Score"
+          defaultTab="Personal"
           children={{
-            Score: <ScoreContent monthKey={selectedMonth} />,
             Personal: <PersonalContent monthKey={selectedMonth} />,
             Business: <BusinessContent monthKey={selectedMonth} />,
           }}

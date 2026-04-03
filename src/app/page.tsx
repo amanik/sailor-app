@@ -17,6 +17,8 @@ import {
   calcRoiOptimizationScore,
   groupByMeaningCategory,
   groupByRoiType,
+  groupByPersonalBucket,
+  groupByBusinessBucket,
 } from "@/lib/scores";
 
 // ─── Stat Card ──────────────────────────────────────────────
@@ -41,6 +43,47 @@ function StatCard({
         {value}
       </p>
     </div>
+  );
+}
+
+// ─── Bucket Breakdown ───────────────────────────────────────
+
+function BucketBreakdown({
+  title,
+  buckets,
+}: {
+  readonly title: string;
+  readonly buckets: readonly { readonly label: string; readonly value: number; readonly count: number }[];
+}) {
+  const maxValue = Math.max(...buckets.map((b) => b.value), 1);
+
+  return (
+    <section className="flex flex-col gap-2">
+      <p className="section-label px-1">{title}</p>
+      <div className="rounded-xl border border-border-secondary bg-bg-primary p-4 shadow-sm flex flex-col gap-3">
+        {buckets.map((bucket) => {
+          const pct = Math.round((bucket.value / maxValue) * 100);
+          return (
+            <div key={bucket.label} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-text-secondary">
+                  {bucket.label}
+                </span>
+                <span className="text-[11px] font-semibold text-text-primary tabular-nums">
+                  {formatCurrency(bucket.value)} · {bucket.count}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-bg-secondary overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-fg-primary transition-all duration-500"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -89,6 +132,12 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
     return assignGrayscaleColors(raw);
   }, [personalTransactions]);
 
+  // Bucket breakdown (all buckets)
+  const personalBuckets = useMemo(
+    () => groupByPersonalBucket(personalTransactions),
+    [personalTransactions]
+  );
+
   // Money In
   const income = useMemo(() => {
     return Math.abs(
@@ -134,6 +183,11 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
           subtitle={`${joyPercentage}% towards meaningful spend`}
         />
       </section>
+
+      {/* Spend Breakdown by Bucket */}
+      {personalBuckets.length > 0 && (
+        <BucketBreakdown title="Spend Breakdown" buckets={personalBuckets} />
+      )}
 
       {/* Joy Maximizers */}
       {meaningSegments.length > 0 && (
@@ -200,6 +254,12 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
     return assignGrayscaleColors(raw);
   }, [businessTransactions]);
 
+  // Bucket breakdown (all buckets)
+  const businessBuckets = useMemo(
+    () => groupByBusinessBucket(businessTransactions),
+    [businessTransactions]
+  );
+
   // Money In (revenue)
   const revenue = useMemo(() => {
     return Math.abs(
@@ -245,6 +305,11 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
           subtitle={`${roiPercentage}% towards high-ROI spend`}
         />
       </section>
+
+      {/* Spend Breakdown by Bucket */}
+      {businessBuckets.length > 0 && (
+        <BucketBreakdown title="Spend Breakdown" buckets={businessBuckets} />
+      )}
 
       {/* Growth Drivers */}
       {roiSegments.length > 0 && (

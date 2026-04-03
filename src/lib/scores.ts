@@ -144,6 +144,73 @@ export function groupByMeaningCategory(
 /**
  * Group transactions by roiType for business donut chart.
  */
+/**
+ * Group personal transactions by bucket (essential, meaningful, mismatch).
+ */
+export function groupByPersonalBucket(
+  transactions: readonly Transaction[]
+): readonly { readonly label: string; readonly value: number; readonly count: number }[] {
+  const reviewed = transactions.filter(
+    (t) => t.reviewed && t.amount > 0 && !t.isTransfer && t.personalBucket
+  );
+
+  const bucketLabels: Record<string, string> = {
+    essential: "Essential",
+    meaningful: "Meaningful",
+    mismatch: "Mismatch",
+  };
+
+  const grouped = reviewed.reduce<Record<string, { value: number; count: number }>>((acc, t) => {
+    const label = bucketLabels[t.personalBucket ?? ""] ?? "Other";
+    const prev = acc[label] ?? { value: 0, count: 0 };
+    return { ...acc, [label]: { value: prev.value + t.amount, count: prev.count + 1 } };
+  }, {});
+
+  const order = ["Essential", "Meaningful", "Mismatch"];
+  return order
+    .filter((label) => grouped[label])
+    .map((label) => ({
+      label,
+      value: Math.round(grouped[label].value),
+      count: grouped[label].count,
+    }));
+}
+
+/**
+ * Group business transactions by bucket (high_roi, no_roi, unsure).
+ */
+export function groupByBusinessBucket(
+  transactions: readonly Transaction[]
+): readonly { readonly label: string; readonly value: number; readonly count: number }[] {
+  const reviewed = transactions.filter(
+    (t) => t.reviewed && t.amount > 0 && !t.isTransfer && t.businessBucket
+  );
+
+  const bucketLabels: Record<string, string> = {
+    high_roi: "High ROI",
+    no_roi: "No ROI",
+    unsure: "Unsure",
+  };
+
+  const grouped = reviewed.reduce<Record<string, { value: number; count: number }>>((acc, t) => {
+    const label = bucketLabels[t.businessBucket ?? ""] ?? "Other";
+    const prev = acc[label] ?? { value: 0, count: 0 };
+    return { ...acc, [label]: { value: prev.value + t.amount, count: prev.count + 1 } };
+  }, {});
+
+  const order = ["High ROI", "No ROI", "Unsure"];
+  return order
+    .filter((label) => grouped[label])
+    .map((label) => ({
+      label,
+      value: Math.round(grouped[label].value),
+      count: grouped[label].count,
+    }));
+}
+
+/**
+ * Group transactions by roiType for business donut chart.
+ */
 export function groupByRoiType(
   transactions: readonly Transaction[]
 ): readonly { readonly label: string; readonly value: number }[] {

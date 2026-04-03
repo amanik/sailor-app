@@ -262,7 +262,7 @@ export default function BusinessBucketDetailPage() {
                     <p className="text-[10px] text-text-tertiary">
                       {txn.category}
                       {meta.dbKey === "high_roi" && txn.roiRating
-                        ? ` \u00B7 ROI: ${txn.roiRating}/10`
+                        ? ` \u00B7 ROI: ${txn.roiRating}/4`
                         : ""}
                       {meta.dbKey === "no_roi" && txn.noRoiReason
                         ? ` \u00B7 ${txn.noRoiReason}`

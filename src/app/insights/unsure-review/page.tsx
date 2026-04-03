@@ -41,7 +41,7 @@ export default function UnsureReviewPage() {
   const [direction, setDirection] = useState<Direction>(null);
   const [flowState, setFlowState] = useState<FlowState>("review");
   const [currentBucket, setCurrentBucket] = useState<Bucket | null>(null);
-  const [roiRating, setRoiRating] = useState(5);
+  const [roiRating, setRoiRating] = useState(2);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket }>>([]);
 
   const [txnSnapshot] = useState(() => [
@@ -80,7 +80,7 @@ export default function UnsureReviewPage() {
     setDirection(null);
     setFlowState("review");
     setCurrentBucket(null);
-    setRoiRating(5);
+    setRoiRating(2);
     if (currentIndex + 1 >= total) {
       setFlowState("done");
     } else {
@@ -123,7 +123,7 @@ export default function UnsureReviewPage() {
     setFlowState("review");
     setDirection(null);
     setCurrentBucket(null);
-    setRoiRating(5);
+    setRoiRating(2);
   }
 
   if (total === 0 || flowState === "done") {
@@ -282,7 +282,7 @@ export default function UnsureReviewPage() {
                   <input
                     type="range"
                     min={1}
-                    max={10}
+                    max={4}
                     value={roiRating}
                     onChange={(e) => setRoiRating(Number(e.target.value))}
                     className="w-full accent-text-primary"

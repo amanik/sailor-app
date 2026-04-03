@@ -177,10 +177,10 @@ export function calcSpendToIncomeScore(spendRatio: number): number {
 export function txnQualityScore(txn: Transaction): number | null {
   // Business buckets
   if (txn.businessBucket === "high_roi") {
-    return txn.roiRating != null ? txn.roiRating * 10 : null;
+    return txn.roiRating != null ? txn.roiRating * 25 : null;
   }
   if (txn.businessBucket === "unsure") {
-    return txn.roiRating != null ? txn.roiRating * 5 : null;
+    return txn.roiRating != null ? txn.roiRating * 12.5 : null;
   }
   if (txn.businessBucket === "no_roi") {
     return 0;
@@ -190,7 +190,7 @@ export function txnQualityScore(txn: Transaction): number | null {
     return 70;
   }
   if (txn.personalBucket === "meaningful") {
-    return txn.meaningRating != null ? txn.meaningRating * 10 : null;
+    return txn.meaningRating != null ? txn.meaningRating * 25 : null;
   }
   if (txn.personalBucket === "mismatch") {
     return 10;

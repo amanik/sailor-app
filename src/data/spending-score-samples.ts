@@ -116,25 +116,25 @@ const overspenderTransactions: readonly Transaction[] = [
   income(5_000, "os_biz_checking", "Coaching Revenue", "2026-02-05"),
   income(3_000, "os_biz_checking", "Group Program Revenue", "2026-02-15"),
   expense(2_500, "os_biz_checking", "Marketing", "2026-02-03", {
-    reviewed: true, businessBucket: "no_roi", roiRating: 2,
+    reviewed: true, businessBucket: "no_roi", roiRating: 1,
   }),
   expense(800, "os_biz_checking", "Software", "2026-02-05", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4,
+    reviewed: true, businessBucket: "unsure", roiRating: 2,
   }),
   expense(1_200, "os_biz_checking", "Networking & Events", "2026-02-10", {
     reviewed: true, businessBucket: "no_roi", roiRating: 1,
   }),
   expense(600, "os_biz_checking", "Office & Space", "2026-02-12", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6,
+    reviewed: true, businessBucket: "high_roi", roiRating: 3,
   }),
   expense(1_100, "os_biz_checking", "Contract Labor", "2026-02-18", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3,
+    reviewed: true, businessBucket: "unsure", roiRating: 1,
   }),
   expense(900, "os_personal_checking", "Shopping", "2026-02-04", {
-    reviewed: true, personalBucket: "mismatch", meaningRating: 2,
+    reviewed: true, personalBucket: "mismatch", meaningRating: 1,
   }),
   expense(600, "os_personal_checking", "Eating Out", "2026-02-08", {
-    reviewed: true, personalBucket: "mismatch", meaningRating: 3,
+    reviewed: true, personalBucket: "mismatch", meaningRating: 1,
   }),
   expense(400, "os_personal_checking", "Subscriptions", "2026-02-10", {
     reviewed: true, personalBucket: "essential",
@@ -143,7 +143,7 @@ const overspenderTransactions: readonly Transaction[] = [
     reviewed: true, personalBucket: "essential",
   }),
   expense(600, "os_personal_checking", "Travel & Vacation", "2026-02-20", {
-    reviewed: true, personalBucket: "meaningful", meaningRating: 4,
+    reviewed: true, personalBucket: "meaningful", meaningRating: 2,
   }),
 ];
 
@@ -185,19 +185,19 @@ const underReviewedTransactions: readonly Transaction[] = [
   income(4_000, "ur_biz_checking", "Group Program Revenue", "2026-02-18"),
   // Reviewed (good quality)
   expense(149, "ur_biz_checking", "Software", "2026-02-03", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 9,
+    reviewed: true, businessBucket: "high_roi", roiRating: 4,
   }),
   expense(1_200, "ur_biz_checking", "Contract Labor", "2026-02-05", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 8,
+    reviewed: true, businessBucket: "high_roi", roiRating: 4,
   }),
   expense(800, "ur_biz_checking", "Marketing", "2026-02-08", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7,
+    reviewed: true, businessBucket: "high_roi", roiRating: 3,
   }),
   expense(600, "ur_personal_checking", "Groceries", "2026-02-04", {
     reviewed: true, personalBucket: "essential",
   }),
   expense(200, "ur_personal_checking", "Health & Fitness", "2026-02-09", {
-    reviewed: true, personalBucket: "meaningful", meaningRating: 8,
+    reviewed: true, personalBucket: "meaningful", meaningRating: 4,
   }),
   expense(350, "ur_personal_checking", "Auto & Gas", "2026-02-12", {
     reviewed: true, personalBucket: "essential",
@@ -256,25 +256,25 @@ const saverTransactions: readonly Transaction[] = [
   income(10_000, "sv_biz_checking", "Coaching Revenue", "2026-02-05"),
   income(5_000, "sv_biz_checking", "Course Revenue", "2026-02-18"),
   expense(149, "sv_biz_checking", "Software", "2026-02-03", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "overhead",
   }),
   expense(59, "sv_biz_checking", "Software", "2026-02-03", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 1, roiType: "overhead",
   }),
   expense(800, "sv_biz_checking", "Contract Labor", "2026-02-10", {
-    reviewed: true, businessBucket: "unsure", roiRating: 5, roiType: "time",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "time",
   }),
   expense(500, "sv_biz_checking", "Insurance", "2026-02-14", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 5, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }),
   expense(200, "sv_biz_checking", "Bookkeeping & Accounting", "2026-02-20", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }),
   expense(400, "sv_biz_checking", "Stripe & Bank Fees", "2026-02-28", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 4, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }),
   expense(391, "sv_biz_checking", "Office & Space", "2026-02-15", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 1, roiType: "overhead",
   }),
   expense(800, "sv_personal_checking", "Groceries", "2026-02-07", {
     reviewed: true, personalBucket: "essential",
@@ -338,34 +338,34 @@ const realEstateTransactions: readonly Transaction[] = [
 
   // Business expenses from actual Feb P&L line items
   expense(984.67, "re_biz_checking", "Marketing", "2025-02-03", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "money",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "money",
   }, { merchant: "Zillow / Panorama / Best Agents / Homebot" }),
   expense(1_397.36, "re_biz_checking", "Travel", "2025-02-05", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4, roiType: "emotional",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "emotional",
   }, { merchant: "Aviation — Pottstown / Sky Manor / VT Flying" }),
   expense(487.06, "re_biz_checking", "Software", "2025-02-08", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Google / YouTube / Intuit QB / Experian" }),
   expense(567.50, "re_biz_checking", "Meals & Entertainment", "2025-02-10", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3, roiType: "emotional",
+    reviewed: true, businessBucket: "unsure", roiRating: 1, roiType: "emotional",
   }, { merchant: "Philadelphia 7 / misc" }),
   expense(217.98, "re_biz_checking", "Office & Space", "2025-02-12", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "overhead",
   }, { merchant: "Amazon Marketplace" }),
   expense(1_200.00, "re_biz_checking", "Insurance", "2025-02-14", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 5, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }, { merchant: "IBX Blue Cross" }),
   expense(79.00, "re_biz_checking", "Stripe & Bank Fees", "2025-02-15", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 1, roiType: "overhead",
   }, { merchant: "Bank fees + late fee" }),
   expense(53.49, "re_biz_checking", "Office & Space", "2025-02-18", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 5, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }, { merchant: "AT&T" }),
   expense(238.23, "re_biz_checking", "Stripe & Bank Fees", "2025-02-20", {
     reviewed: true, businessBucket: "no_roi", roiRating: 1,
   }, { merchant: "Credit card interest" }),
   expense(300.00, "re_biz_checking", "Auto & Gas", "2025-02-22", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Car payment — client showings" }),
 
   // Non-deductible (still real spend that hits the score)
@@ -416,43 +416,43 @@ const germanCoachTransactions: readonly Transaction[] = [
 
   // Feb biz expenses: $926.08 from actual line items
   expense(10.62, "gc_biz_checking", "Software", "2025-02-03", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Basecamp", isRecurring: true }),
   expense(149.90, "gc_biz_checking", "Software", "2025-02-09", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 8, roiType: "money",
+    reviewed: true, businessBucket: "high_roi", roiRating: 4, roiType: "money",
   }, { merchant: "Zoom (yearly)" }),
   expense(1.99, "gc_biz_checking", "Software", "2025-02-10", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 1, roiType: "overhead",
   }, { merchant: "Google One" }),
   expense(227.53, "gc_biz_checking", "Software", "2025-02-10", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Zapier" }),
   expense(11.00, "gc_biz_checking", "Software", "2025-02-14", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Hey Email", isRecurring: true }),
   expense(5.47, "gc_biz_checking", "Software", "2025-02-21", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "overhead",
   }, { merchant: "Microsoft" }),
   expense(91.78, "gc_biz_checking", "Software", "2025-02-23", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 8, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 4, roiType: "time",
   }, { merchant: "Readwise (yearly)" }),
   expense(19.14, "gc_biz_checking", "Software", "2025-02-25", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "ChatGPT", isRecurring: true }),
   expense(28.96, "gc_biz_checking", "Stripe & Bank Fees", "2025-02-28", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 1, roiType: "overhead",
   }, { merchant: "Stripe fees" }),
   expense(9.68, "gc_biz_checking", "Office & Space", "2025-02-09", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "emotional",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "emotional",
   }, { merchant: "Focusmate", isRecurring: true }),
   expense(46.90, "gc_biz_checking", "Networking & Events", "2025-02-23", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "emotional",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "emotional",
   }, { merchant: "Ness Labs Community (yearly)" }),
   expense(9.99, "gc_biz_checking", "Office & Space", "2025-02-17", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "overhead",
   }, { merchant: "Klarmobil (phone)", isRecurring: true }),
   expense(313.12, "gc_biz_checking", "Stripe & Bank Fees", "2025-02-10", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 1, roiType: "overhead",
   }, { merchant: "VAT payment (Jan)" }),
 
   // Owner's distributions (non-deductible personal expenses)
@@ -466,7 +466,7 @@ const germanCoachTransactions: readonly Transaction[] = [
     reviewed: true, personalBucket: "essential",
   }, { merchant: "Owner's pay" }),
   expense(51.25, "gc_personal_checking", "Shopping", "2025-02-11", {
-    reviewed: true, personalBucket: "mismatch", meaningRating: 3,
+    reviewed: true, personalBucket: "mismatch", meaningRating: 1,
   }, { merchant: "Personal purchase on biz card" }),
 ];
 
@@ -512,43 +512,43 @@ const realEstateOctTransactions: readonly Transaction[] = [
 
   // Deductible expenses: $15,534
   expense(1_396.35, "reo_biz_checking", "Marketing", "2025-10-03", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "money",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "money",
   }, { merchant: "Zillow / Panorama / Best Agents" }),
   expense(1_375.13, "reo_biz_checking", "Travel", "2025-10-05", {
-    reviewed: true, businessBucket: "unsure", roiRating: 4, roiType: "emotional",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "emotional",
   }, { merchant: "Aviation expenses" }),
   expense(245.72, "reo_biz_checking", "Software", "2025-10-08", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }, { merchant: "Google / Intuit / Experian" }),
   expense(489.59, "reo_biz_checking", "Meals & Entertainment", "2025-10-10", {
-    reviewed: true, businessBucket: "unsure", roiRating: 5, roiType: "emotional",
+    reviewed: true, businessBucket: "unsure", roiRating: 2, roiType: "emotional",
   }, { merchant: "Client meals" }),
   expense(1_094.56, "reo_biz_checking", "Insurance", "2025-10-12", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 5, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }, { merchant: "IBX Blue Cross" }),
   expense(39.09, "reo_biz_checking", "Stripe & Bank Fees", "2025-10-15", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 1, roiType: "overhead",
   }),
   expense(596.02, "reo_biz_checking", "Stripe & Bank Fees", "2025-10-17", {
     reviewed: true, businessBucket: "no_roi", roiRating: 1,
   }, { merchant: "Credit card interest" }),
   expense(6_282.73, "reo_biz_checking", "Contract Labor", "2025-10-18", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 8, roiType: "money",
+    reviewed: true, businessBucket: "high_roi", roiRating: 4, roiType: "money",
   }, { merchant: "Payroll" }),
   expense(1_977.02, "reo_biz_checking", "Contract Labor", "2025-10-20", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 7, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "overhead",
   }, { merchant: "Payroll taxes" }),
   expense(750.00, "reo_biz_checking", "Coaching & Training", "2025-10-22", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 8, roiType: "emotional",
+    reviewed: true, businessBucket: "high_roi", roiRating: 4, roiType: "emotional",
   }, { merchant: "Business coaching" }),
   expense(340.83, "reo_biz_checking", "Auto & Gas", "2025-10-24", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 6, roiType: "time",
+    reviewed: true, businessBucket: "high_roi", roiRating: 3, roiType: "time",
   }),
   expense(58.49, "reo_biz_checking", "Office & Space", "2025-10-26", {
-    reviewed: true, businessBucket: "high_roi", roiRating: 5, roiType: "overhead",
+    reviewed: true, businessBucket: "high_roi", roiRating: 2, roiType: "overhead",
   }, { merchant: "AT&T" }),
   expense(13.43, "reo_biz_checking", "Office & Space", "2025-10-28", {
-    reviewed: true, businessBucket: "unsure", roiRating: 3, roiType: "overhead",
+    reviewed: true, businessBucket: "unsure", roiRating: 1, roiType: "overhead",
   }, { merchant: "Office supplies" }),
   expense(125.00, "reo_biz_checking", "Contract Labor", "2025-10-30", {
     reviewed: false,

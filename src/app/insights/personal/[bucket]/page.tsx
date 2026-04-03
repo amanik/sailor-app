@@ -188,7 +188,7 @@ export default function PersonalBucketDetailPage() {
                     <p className="text-[10px] text-text-tertiary">
                       {txn.category}
                       {meta.dbKey === "meaningful" && txn.meaningRating
-                        ? ` \u00B7 ${txn.meaningRating}/10`
+                        ? ` \u00B7 ${txn.meaningRating}/4`
                         : ""}
                       {meta.dbKey === "meaningful" && txn.meaningCategory
                         ? ` \u00B7 ${txn.meaningCategory}`

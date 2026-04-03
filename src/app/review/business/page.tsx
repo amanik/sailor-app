@@ -11,16 +11,10 @@ import { ProgressBar } from "@/components/review/ProgressBar";
 import { RatingGauge } from "@/components/review/RatingGauge";
 
 const roiMessages: Record<number, string> = {
-  1: "This barely moves the needle",
-  2: "Minimal impact on growth",
-  3: "Below average return",
-  4: "Slight positive impact",
-  5: "Fair return on investment",
-  6: "Solid contribution to growth",
-  7: "Strong ROI \u2014 keep investing",
-  8: "High-impact spend",
-  9: "Exceptional return",
-  10: "Game-changing investment",
+  1: "Not worth it",
+  2: "Marginal return",
+  3: "Solid investment",
+  4: "Game-changer",
 };
 
 type Bucket = "high_roi" | "no_roi" | "unsure";
@@ -50,7 +44,7 @@ export default function BusinessReviewPage() {
   const [direction, setDirection] = useState<Direction>(null);
   const [flowState, setFlowState] = useState<FlowState>("review");
   const [currentBucket, setCurrentBucket] = useState<Bucket | null>(null);
-  const [roiRating, setRoiRating] = useState(5);
+  const [roiRating, setRoiRating] = useState(2);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket; roi?: number }>>([]);
 
   const [txnSnapshot] = useState(() => [...allTransactions]);
@@ -86,7 +80,7 @@ export default function BusinessReviewPage() {
     setDirection(null);
     setFlowState("review");
     setCurrentBucket(null);
-    setRoiRating(5);
+    setRoiRating(2);
     if (currentIndex + 1 >= total) {
       setFlowState("done");
     } else {
@@ -118,7 +112,7 @@ export default function BusinessReviewPage() {
     setFlowState("review");
     setDirection(null);
     setCurrentBucket(null);
-    setRoiRating(5);
+    setRoiRating(2);
   }
 
   if (total === 0 || flowState === "done") {
@@ -280,7 +274,7 @@ export default function BusinessReviewPage() {
                     value={roiRating}
                     onChange={setRoiRating}
                     min={1}
-                    max={10}
+                    max={4}
                     messages={roiMessages}
                     lowLabel="Low ROI"
                     highLabel="High ROI"

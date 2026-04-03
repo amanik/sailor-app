@@ -151,7 +151,7 @@ export function TransactionDetail({
               />
             )}
             {transaction.roiRating !== undefined && (
-              <DetailRow label="ROI Rating" value={`${transaction.roiRating}/10`} />
+              <DetailRow label="ROI Rating" value={`${transaction.roiRating}/4`} />
             )}
             <DetailRow label="ROI Type" value={transaction.roiType ?? undefined} />
             <DetailRow

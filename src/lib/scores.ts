@@ -18,8 +18,8 @@ export function calcSpendIncomeScore(income: number, expenses: number): number {
 /**
  * Review quality (20% weight in overall score).
  * Average of all review ratings normalized to 0-100.
- * For business: uses roiRating (1-5 scale).
- * For personal: uses meaningRating (1-5 scale).
+ * For business: uses roiRating (1-4 scale).
+ * For personal: uses meaningRating (1-4 scale).
  * Returns 50 if no reviewed transactions (neutral).
  */
 export function calcReviewQualityScore(
@@ -33,8 +33,8 @@ export function calcReviewQualityScore(
 
   if (ratings.length === 0) return 50;
   const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
-  // Normalize 1-10 scale to 0-100
-  return Math.round(((avg - 1) / 9) * 100);
+  // Normalize 1-4 scale to 0-100
+  return Math.round(((avg - 1) / 3) * 100);
 }
 
 /**

@@ -11,16 +11,10 @@ import { ProgressBar } from "@/components/review/ProgressBar";
 import { RatingGauge } from "@/components/review/RatingGauge";
 
 const meaningMessages: Record<number, string> = {
-  1: "This didn\u2019t bring me joy",
-  2: "Barely noticeable impact",
-  3: "A small moment",
-  4: "Somewhat meaningful",
-  5: "Worth it in the moment",
-  6: "Genuinely enriching",
-  7: "This made my week",
-  8: "Deeply meaningful",
-  9: "Life-changing experience",
-  10: "Peak joy \u2014 absolutely worth it",
+  1: "Didn\u2019t bring me joy",
+  2: "Worth it in the moment",
+  3: "Genuinely meaningful",
+  4: "Peak joy",
 };
 
 type Bucket = "essential" | "meaningful" | "mismatch";
@@ -48,7 +42,7 @@ export default function PersonalReviewPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<Direction>(null);
   const [flowState, setFlowState] = useState<FlowState>("review");
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(2);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket }>>([]);
 
   const [txnSnapshot] = useState(() => [...allTransactions]);
@@ -81,7 +75,7 @@ export default function PersonalReviewPage() {
     }
     setDirection(null);
     setFlowState("review");
-    setRating(5);
+    setRating(2);
     if (currentIndex + 1 >= total) {
       setFlowState("done");
     } else {
@@ -112,7 +106,7 @@ export default function PersonalReviewPage() {
   function handleDismissSheet() {
     setFlowState("review");
     setDirection(null);
-    setRating(5);
+    setRating(2);
   }
 
   if (total === 0 || flowState === "done") {
@@ -268,7 +262,7 @@ export default function PersonalReviewPage() {
                     value={rating}
                     onChange={setRating}
                     min={1}
-                    max={10}
+                    max={4}
                     messages={meaningMessages}
                     lowLabel="Meh"
                     highLabel="Amazing"

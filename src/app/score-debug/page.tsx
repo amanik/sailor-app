@@ -376,11 +376,11 @@ function Pillar2Detail({
         </p>
         <div className="border-t border-border-primary pt-2 mt-1 space-y-1">
           <p className="font-medium text-text-secondary">Quality score rules:</p>
-          <p>• <span className="font-mono">high_roi</span> → rating × 10 (e.g. 8/10 = 80)</p>
-          <p>• <span className="font-mono">unsure</span> → rating × 5 (e.g. 5/10 = 25)</p>
+          <p>• <span className="font-mono">high_roi</span> → rating × 25 (e.g. 4/4 = 100)</p>
+          <p>• <span className="font-mono">unsure</span> → rating × 12.5 (e.g. 2/4 = 25)</p>
           <p>• <span className="font-mono">no_roi</span> → 0 (always)</p>
           <p>• <span className="font-mono">essential</span> → 70 (fixed)</p>
-          <p>• <span className="font-mono">meaningful</span> → rating × 10</p>
+          <p>• <span className="font-mono">meaningful</span> → rating × 25</p>
           <p>• <span className="font-mono">mismatch</span> → 10 (fixed)</p>
           <p className="pt-1">Buckets that need a rating (high_roi, unsure, meaningful) are <span className="font-medium text-text-secondary">excluded from the average</span> until rated — they don't help or hurt.</p>
         </div>
@@ -430,14 +430,14 @@ function Pillar2Detail({
                   // Build a human-readable quality explanation
                   const qualityExplain = (() => {
                     if (st.txn.businessBucket === "high_roi")
-                      return rating != null ? `${rating}/10 × 10` : "needs rating";
+                      return rating != null ? `${rating}/4 × 25` : "needs rating";
                     if (st.txn.businessBucket === "unsure")
-                      return rating != null ? `${rating}/10 × 5` : "needs rating";
+                      return rating != null ? `${rating}/4 × 12.5` : "needs rating";
                     if (st.txn.businessBucket === "no_roi") return "fixed 0";
                     if (st.txn.personalBucket === "essential")
                       return "fixed 70";
                     if (st.txn.personalBucket === "meaningful")
-                      return rating != null ? `${rating}/10 × 10` : "needs rating";
+                      return rating != null ? `${rating}/4 × 25` : "needs rating";
                     if (st.txn.personalBucket === "mismatch")
                       return "fixed 10";
                     return "neutral";
@@ -734,17 +734,17 @@ function buildCsv(personas: readonly PersonaRow[]): string {
       const explain = (() => {
         if (st.txn.businessBucket === "high_roi")
           return st.txn.roiRating != null
-            ? `${st.txn.roiRating}/10 × 10`
+            ? `${st.txn.roiRating}/4 × 25`
             : "needs rating";
         if (st.txn.businessBucket === "unsure")
           return st.txn.roiRating != null
-            ? `${st.txn.roiRating}/10 × 5`
+            ? `${st.txn.roiRating}/4 × 12.5`
             : "needs rating";
         if (st.txn.businessBucket === "no_roi") return "fixed 0";
         if (st.txn.personalBucket === "essential") return "fixed 70";
         if (st.txn.personalBucket === "meaningful")
           return st.txn.meaningRating != null
-            ? `${st.txn.meaningRating}/10 × 10`
+            ? `${st.txn.meaningRating}/4 × 25`
             : "needs rating";
         if (st.txn.personalBucket === "mismatch") return "fixed 10";
         return "neutral";

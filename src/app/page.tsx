@@ -120,6 +120,17 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
     [transactions, notes, personalAccountIds]
   );
 
+  // Review coverage
+  const reviewedExpenseCount = useMemo(
+    () => personalTransactions.filter((t) => t.reviewed && t.amount > 0 && !t.isTransfer).length,
+    [personalTransactions]
+  );
+  const totalExpenseCount = useMemo(
+    () => personalTransactions.filter((t) => t.amount > 0 && !t.isTransfer).length,
+    [personalTransactions]
+  );
+  const hasMinimumReviews = reviewedExpenseCount >= 5 || (totalExpenseCount > 0 && reviewedExpenseCount / totalExpenseCount >= 0.5);
+
   // Joy Spend Score
   const { score: joyScore, joyPercentage } = useMemo(
     () => calcJoySpendScore(personalTransactions),
@@ -177,11 +188,20 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
       {/* Joy Spend Score */}
       <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
         <p className="section-label">Joy Spend Score</p>
-        <HalfPieGauge
-          score={joyScore}
-          size={140}
-          subtitle={`${joyPercentage}% towards meaningful spend`}
-        />
+        {hasMinimumReviews ? (
+          <HalfPieGauge
+            score={joyScore}
+            size={140}
+            subtitle={`${joyPercentage}% towards meaningful spend`}
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-1 py-4">
+            <p className="text-2xl font-bold tracking-tighter text-text-quaternary">—</p>
+            <p className="text-[11px] text-text-tertiary text-center max-w-[200px]">
+              Review at least 5 transactions to unlock your score
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Spend Breakdown by Bucket */}
@@ -242,6 +262,17 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
     [transactions, notes, businessAccountIds]
   );
 
+  // Review coverage
+  const bizReviewedCount = useMemo(
+    () => businessTransactions.filter((t) => t.reviewed && t.amount > 0 && !t.isTransfer).length,
+    [businessTransactions]
+  );
+  const bizTotalExpenseCount = useMemo(
+    () => businessTransactions.filter((t) => t.amount > 0 && !t.isTransfer).length,
+    [businessTransactions]
+  );
+  const bizHasMinimumReviews = bizReviewedCount >= 5 || (bizTotalExpenseCount > 0 && bizReviewedCount / bizTotalExpenseCount >= 0.5);
+
   // ROI Optimization Score
   const { score: roiScore, roiPercentage } = useMemo(
     () => calcRoiOptimizationScore(businessTransactions),
@@ -299,11 +330,20 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
       {/* ROI Optimization Score */}
       <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
         <p className="section-label">ROI Optimization Score</p>
-        <HalfPieGauge
-          score={roiScore}
-          size={140}
-          subtitle={`${roiPercentage}% towards high-ROI spend`}
-        />
+        {bizHasMinimumReviews ? (
+          <HalfPieGauge
+            score={roiScore}
+            size={140}
+            subtitle={`${roiPercentage}% towards high-ROI spend`}
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-1 py-4">
+            <p className="text-2xl font-bold tracking-tighter text-text-quaternary">—</p>
+            <p className="text-[11px] text-text-tertiary text-center max-w-[200px]">
+              Review at least 5 transactions to unlock your score
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Spend Breakdown by Bucket */}

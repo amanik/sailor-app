@@ -19,7 +19,7 @@ const meaningMessages: Record<number, string> = {
 
 type Bucket = "essential" | "meaningful" | "mismatch";
 type Direction = "left" | "right" | "up" | null;
-type FlowState = "review" | "meaningful-rating" | "pivot" | "done";
+type FlowState = "rate" | "classify" | "meaningful-category" | "pivot" | "done";
 
 const bucketConfig: Record<Bucket, { label: string; icon: typeof Sparkles }> = {
   essential: { label: "Essential", icon: Sparkles },
@@ -41,18 +41,23 @@ export default function PersonalReviewPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<Direction>(null);
-  const [flowState, setFlowState] = useState<FlowState>("review");
-  const [rating, setRating] = useState(2);
+  const [flowState, setFlowState] = useState<FlowState>("rate");
+  const [rating, setRating] = useState<number | null>(null);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket }>>([]);
 
   const [txnSnapshot] = useState(() => [...allTransactions]);
   const current = txnSnapshot[currentIndex] as Transaction | undefined;
   const total = txnSnapshot.length;
 
+  function handleRate(val: number) {
+    setRating(val);
+    setFlowState("classify");
+  }
+
   function handleBucket(bucket: Bucket) {
     if (bucket === "meaningful") {
       setDirection("right");
-      setTimeout(() => setFlowState("meaningful-rating"), 300);
+      setTimeout(() => setFlowState("meaningful-category"), 300);
     } else if (bucket === "mismatch") {
       setDirection("left");
       setTimeout(() => setFlowState("pivot"), 300);
@@ -74,8 +79,8 @@ export default function PersonalReviewPage() {
       });
     }
     setDirection(null);
-    setFlowState("review");
-    setRating(2);
+    setFlowState("rate");
+    setRating(null);
     if (currentIndex + 1 >= total) {
       setFlowState("done");
     } else {
@@ -89,11 +94,13 @@ export default function PersonalReviewPage() {
     dispatch({ type: "UN_REVIEW_TRANSACTION", id: last.txn.id });
     setReviewedLocal((prev) => prev.slice(0, -1));
     setCurrentIndex((i) => Math.max(0, i - 1));
-    setFlowState("review");
+    setFlowState("rate");
+    setRating(null);
     setDirection(null);
   }
 
   function handleSwipe(swipeDirection: "left" | "right" | "up") {
+    if (flowState !== "classify") return;
     if (swipeDirection === "right") {
       handleBucket("meaningful");
     } else if (swipeDirection === "left") {
@@ -104,10 +111,11 @@ export default function PersonalReviewPage() {
   }
 
   function handleDismissSheet() {
-    setFlowState("review");
+    setFlowState("classify");
     setDirection(null);
-    setRating(2);
   }
+
+  const isClassifying = flowState !== "rate";
 
   if (total === 0 || flowState === "done") {
     const essentialCount = reviewedLocal.filter((r) => r.bucket === "essential").length;
@@ -189,7 +197,7 @@ export default function PersonalReviewPage() {
               key={current.id}
               transaction={current}
               direction={direction}
-              onSwipe={handleSwipe}
+              onSwipe={isClassifying ? handleSwipe : undefined}
               rightLabel="Meaningful"
               leftLabel="Mismatch"
               upLabel="Essential"
@@ -197,31 +205,60 @@ export default function PersonalReviewPage() {
           </AnimatePresence>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            {(["essential", "meaningful", "mismatch"] as const).map((bucket) => {
-              const config = bucketConfig[bucket];
-              const Icon = config.icon;
-              return (
-                <button
-                  key={bucket}
-                  onClick={() => handleBucket(bucket)}
-                  className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
-                >
-                  <Icon className="size-5 text-text-secondary" />
-                  <span className="text-[10px] font-bold text-text-primary">
-                    {config.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Step 1: Rate */}
+        {!isClassifying && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <p className="section-label text-center mb-3">How did this feel?</p>
+            <RatingGauge
+              value={rating}
+              onChange={handleRate}
+              min={1}
+              max={4}
+              messages={meaningMessages}
+              lowLabel="Meh"
+              highLabel="Amazing"
+            />
+          </motion.div>
+        )}
+
+        {/* Step 2: Classify */}
+        {isClassifying && flowState === "classify" && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex flex-col gap-2"
+          >
+            <p className="section-label text-center">Now classify it</p>
+            <div className="flex gap-2">
+              {(["essential", "meaningful", "mismatch"] as const).map((bucket) => {
+                const config = bucketConfig[bucket];
+                const Icon = config.icon;
+                return (
+                  <button
+                    key={bucket}
+                    onClick={() => handleBucket(bucket)}
+                    className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
+                  >
+                    <Icon className="size-5 text-text-secondary" />
+                    <span className="text-[10px] font-bold text-text-primary">
+                      {config.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      {/* ── Bottom Sheet: Meaningful Rating ── */}
+      {/* ── Bottom Sheet: Meaningful Category ── */}
       <AnimatePresence>
-        {flowState === "meaningful-rating" && current && (
+        {flowState === "meaningful-category" && current && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -244,7 +281,7 @@ export default function PersonalReviewPage() {
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
-                  <p className="section-label">Measure the magic</p>
+                  <p className="section-label">Where did this land?</p>
                   <button
                     onClick={handleDismissSheet}
                     className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
@@ -253,28 +290,11 @@ export default function PersonalReviewPage() {
                   </button>
                 </div>
 
-                <h2 className="text-lg font-bold tracking-tight text-text-primary text-center mb-4">
-                  How meaningful was this?
-                </h2>
-
-                <div className="mb-5">
-                  <RatingGauge
-                    value={rating}
-                    onChange={setRating}
-                    min={1}
-                    max={4}
-                    messages={meaningMessages}
-                    lowLabel="Meh"
-                    highLabel="Amazing"
-                  />
-                </div>
-
-                <p className="section-label text-center mb-2">Where did this land?</p>
                 <div className="flex flex-col gap-2">
                   {meaningCategories.map((cat) => (
                     <button
                       key={cat}
-                      onClick={() => advanceToNext("meaningful", rating, cat)}
+                      onClick={() => advanceToNext("meaningful", rating ?? undefined, cat)}
                       className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
                     >
                       {cat}

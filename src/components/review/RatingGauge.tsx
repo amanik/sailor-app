@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 interface RatingGaugeProps {
-  value: number;
+  value: number | null;
   onChange: (value: number) => void;
   min?: number;
   max?: number;
@@ -41,7 +41,8 @@ export function RatingGauge({
   const count = max - min + 1;
   const stars = Array.from({ length: count }, (_, i) => min + i);
 
-  const message = messages[value] ?? "";
+  const hasValue = value !== null;
+  const message = hasValue ? (messages[value] ?? "") : "";
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -54,47 +55,61 @@ export function RatingGauge({
             onClick={() => onChange(starValue)}
             whileTap={{ scale: 0.85 }}
             animate={{
-              scale: starValue <= value ? 1 : 0.85,
-              opacity: starValue <= value ? 1 : 0.35,
+              scale: hasValue && starValue <= value ? 1 : 0.85,
+              opacity: hasValue && starValue <= value ? 1 : 0.35,
             }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="p-1 -m-1 touch-manipulation"
             aria-label={`Rate ${starValue} of ${max}`}
           >
-            <StarIcon filled={starValue <= value} />
+            <StarIcon filled={hasValue && starValue <= value} />
           </motion.button>
         ))}
       </div>
 
       {/* Large number */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center h-[48px]">
         <AnimatePresence mode="wait">
-          <motion.span
-            key={value}
-            className="text-4xl font-bold text-text-primary tabular-nums"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            {value}
-          </motion.span>
+          {hasValue ? (
+            <motion.span
+              key={value}
+              className="text-4xl font-bold text-text-primary tabular-nums"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              {value}
+            </motion.span>
+          ) : (
+            <motion.span
+              key="prompt"
+              className="text-sm text-text-tertiary"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              Tap to rate
+            </motion.span>
+          )}
         </AnimatePresence>
       </div>
 
       {/* Dynamic message */}
       <div className="h-6 flex items-center justify-center">
         <AnimatePresence mode="wait">
-          <motion.p
-            key={value}
-            className="text-sm text-text-tertiary text-center"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            {message}
-          </motion.p>
+          {hasValue && (
+            <motion.p
+              key={value}
+              className="text-sm text-text-tertiary text-center"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              {message}
+            </motion.p>
+          )}
         </AnimatePresence>
       </div>
 
@@ -111,7 +126,7 @@ export function RatingGauge({
         type="range"
         min={min}
         max={max}
-        value={value}
+        value={value ?? min}
         onChange={(e) => onChange(Number(e.target.value))}
         className="sr-only"
         aria-label="Rating"

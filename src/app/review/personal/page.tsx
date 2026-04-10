@@ -19,7 +19,7 @@ const meaningMessages: Record<number, string> = {
 
 type Bucket = "essential" | "meaningful" | "mismatch";
 type Direction = "left" | "right" | "up" | null;
-type FlowState = "rate" | "classify" | "meaningful-category" | "pivot" | "done";
+type FlowState = "classify" | "rate" | "clarify" | "done";
 
 const bucketConfig: Record<Bucket, { label: string; icon: typeof Sparkles }> = {
   essential: { label: "Essential", icon: Sparkles },
@@ -34,6 +34,14 @@ const meaningCategories = [
   "Joy & Play",
 ];
 
+const mismatchReasons = [
+  "Impulse purchase",
+  "Identity spending",
+  "Boredom buy",
+  "Forgot to cancel",
+  "Quality didn\u2019t match price",
+];
+
 export default function PersonalReviewPage() {
   const state = useTransactions();
   const dispatch = useTransactionDispatch();
@@ -41,7 +49,8 @@ export default function PersonalReviewPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<Direction>(null);
-  const [flowState, setFlowState] = useState<FlowState>("rate");
+  const [flowState, setFlowState] = useState<FlowState>("classify");
+  const [currentBucket, setCurrentBucket] = useState<Bucket | null>(null);
   const [rating, setRating] = useState<number | null>(null);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket }>>([]);
 
@@ -49,22 +58,31 @@ export default function PersonalReviewPage() {
   const current = txnSnapshot[currentIndex] as Transaction | undefined;
   const total = txnSnapshot.length;
 
-  function handleRate(val: number) {
-    setRating(val);
-    setFlowState("classify");
+  // Step 1: Classify — swipe or tap a bucket
+  function handleBucket(bucket: Bucket) {
+    setCurrentBucket(bucket);
+    if (bucket === "meaningful") setDirection("right");
+    else if (bucket === "mismatch") setDirection("left");
+    else setDirection("up");
+    // Open bottom sheet for rating
+    setTimeout(() => setFlowState("rate"), 300);
   }
 
-  function handleBucket(bucket: Bucket) {
-    if (bucket === "meaningful") {
-      setDirection("right");
-      setTimeout(() => setFlowState("meaningful-category"), 300);
-    } else if (bucket === "mismatch") {
-      setDirection("left");
-      setTimeout(() => setFlowState("pivot"), 300);
+  // Step 2: Rate — tap stars in bottom sheet
+  function handleRate(val: number) {
+    setRating(val);
+    // If bucket needs clarification, go to step 3. Otherwise advance.
+    if (currentBucket === "meaningful" || currentBucket === "mismatch") {
+      setFlowState("clarify");
     } else {
-      setDirection("up");
-      setTimeout(() => advanceToNext(bucket), 300);
+      // essential — no clarification needed, advance
+      advanceToNext(currentBucket ?? "essential", val);
     }
+  }
+
+  // Step 3: Clarify — pick meaning category or mismatch reason
+  function handleClarify(meaningCategory?: string) {
+    advanceToNext(currentBucket!, rating ?? undefined, meaningCategory);
   }
 
   function advanceToNext(bucket: Bucket, meaningRating?: number, meaningCategory?: string) {
@@ -79,7 +97,8 @@ export default function PersonalReviewPage() {
       });
     }
     setDirection(null);
-    setFlowState("rate");
+    setFlowState("classify");
+    setCurrentBucket(null);
     setRating(null);
     if (currentIndex + 1 >= total) {
       setFlowState("done");
@@ -94,28 +113,24 @@ export default function PersonalReviewPage() {
     dispatch({ type: "UN_REVIEW_TRANSACTION", id: last.txn.id });
     setReviewedLocal((prev) => prev.slice(0, -1));
     setCurrentIndex((i) => Math.max(0, i - 1));
-    setFlowState("rate");
+    setFlowState("classify");
+    setCurrentBucket(null);
     setRating(null);
     setDirection(null);
   }
 
   function handleSwipe(swipeDirection: "left" | "right" | "up") {
-    if (flowState !== "classify") return;
-    if (swipeDirection === "right") {
-      handleBucket("meaningful");
-    } else if (swipeDirection === "left") {
-      handleBucket("mismatch");
-    } else {
-      handleBucket("essential");
-    }
+    if (swipeDirection === "right") handleBucket("meaningful");
+    else if (swipeDirection === "left") handleBucket("mismatch");
+    else handleBucket("essential");
   }
 
   function handleDismissSheet() {
     setFlowState("classify");
     setDirection(null);
+    setCurrentBucket(null);
+    setRating(null);
   }
-
-  const isClassifying = flowState !== "rate";
 
   if (total === 0 || flowState === "done") {
     const essentialCount = reviewedLocal.filter((r) => r.bucket === "essential").length;
@@ -169,6 +184,8 @@ export default function PersonalReviewPage() {
 
   if (!current) return null;
 
+  const sheetOpen = flowState === "rate" || flowState === "clarify";
+
   return (
     <div className="flex flex-col pb-4 safe-top">
       <div className="h-[60px]" />
@@ -197,7 +214,7 @@ export default function PersonalReviewPage() {
               key={current.id}
               transaction={current}
               direction={direction}
-              onSwipe={isClassifying ? handleSwipe : undefined}
+              onSwipe={flowState === "classify" ? handleSwipe : undefined}
               rightLabel="Meaningful"
               leftLabel="Mismatch"
               upLabel="Essential"
@@ -205,60 +222,32 @@ export default function PersonalReviewPage() {
           </AnimatePresence>
         </div>
 
-        {/* Step 1: Rate */}
-        {!isClassifying && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <p className="section-label text-center mb-3">How did this feel?</p>
-            <RatingGauge
-              value={rating}
-              onChange={handleRate}
-              min={1}
-              max={4}
-              messages={meaningMessages}
-              lowLabel="Meh"
-              highLabel="Amazing"
-            />
-          </motion.div>
-        )}
-
-        {/* Step 2: Classify */}
-        {isClassifying && flowState === "classify" && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex flex-col gap-2"
-          >
-            <p className="section-label text-center">Now classify it</p>
-            <div className="flex gap-2">
-              {(["essential", "meaningful", "mismatch"] as const).map((bucket) => {
-                const config = bucketConfig[bucket];
-                const Icon = config.icon;
-                return (
-                  <button
-                    key={bucket}
-                    onClick={() => handleBucket(bucket)}
-                    className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
-                  >
-                    <Icon className="size-5 text-text-secondary" />
-                    <span className="text-[10px] font-bold text-text-primary">
-                      {config.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
+        {/* Bucket buttons — visible on classify step */}
+        {flowState === "classify" && (
+          <div className="flex gap-2">
+            {(["essential", "meaningful", "mismatch"] as const).map((bucket) => {
+              const config = bucketConfig[bucket];
+              const Icon = config.icon;
+              return (
+                <button
+                  key={bucket}
+                  onClick={() => handleBucket(bucket)}
+                  className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
+                >
+                  <Icon className="size-5 text-text-secondary" />
+                  <span className="text-[10px] font-bold text-text-primary">
+                    {config.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* ── Bottom Sheet: Meaningful Category ── */}
+      {/* ── Bottom Sheet: Rate → Clarify ── */}
       <AnimatePresence>
-        {flowState === "meaningful-category" && current && (
+        {sheetOpen && current && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -281,90 +270,63 @@ export default function PersonalReviewPage() {
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
-                  <p className="section-label">Where did this land?</p>
-                  <button
-                    onClick={handleDismissSheet}
-                    className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
-                  >
-                    <X className="size-4 text-text-tertiary" />
-                  </button>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {meaningCategories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => advanceToNext("meaningful", rating ?? undefined, cat)}
-                      className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ── Bottom Sheet: Mismatch Pivot ── */}
-      <AnimatePresence>
-        {flowState === "pivot" && current && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/40"
-              onClick={handleDismissSheet}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg"
-            >
-              <div className="rounded-t-2xl bg-bg-primary px-4 pb-8 pt-4">
-                <div className="mb-4 flex justify-center">
-                  <div className="h-1 w-10 rounded-full bg-border-secondary" />
-                </div>
-
-                <div className="flex items-center justify-end mb-2">
-                  <button
-                    onClick={handleDismissSheet}
-                    className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
-                  >
-                    <X className="size-4 text-text-tertiary" />
-                  </button>
-                </div>
-
-                <div className="flex flex-col gap-4 pt-2 pb-4">
-                  <h2 className="text-lg font-bold tracking-tight text-text-primary text-center">
-                    What happened here?
-                  </h2>
-                  <p className="text-sm text-text-tertiary text-center max-w-[280px] mx-auto">
-                    Not every spend hits the mark. Understanding why helps you pivot.
+                  <p className="section-label">
+                    {flowState === "rate"
+                      ? "How did this feel?"
+                      : currentBucket === "meaningful"
+                        ? "Where did this land?"
+                        : "What happened here?"}
                   </p>
+                  <button
+                    onClick={handleDismissSheet}
+                    className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
+                  >
+                    <X className="size-4 text-text-tertiary" />
+                  </button>
+                </div>
+
+                {/* Step 2: Star rating */}
+                {flowState === "rate" && (
+                  <RatingGauge
+                    value={rating}
+                    onChange={handleRate}
+                    min={1}
+                    max={4}
+                    messages={meaningMessages}
+                    lowLabel="Meh"
+                    highLabel="Amazing"
+                  />
+                )}
+
+                {/* Step 3: Clarify — Meaningful category */}
+                {flowState === "clarify" && currentBucket === "meaningful" && (
                   <div className="flex flex-col gap-2">
-                    {[
-                      "Impulse purchase",
-                      "Identity spending",
-                      "Boredom buy",
-                      "Forgot to cancel",
-                      "Quality didn\u2019t match price",
-                    ].map((reason) => (
+                    {meaningCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => handleClarify(cat)}
+                        className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Step 3: Clarify — Mismatch reason */}
+                {flowState === "clarify" && currentBucket === "mismatch" && (
+                  <div className="flex flex-col gap-2">
+                    {mismatchReasons.map((reason) => (
                       <button
                         key={reason}
-                        onClick={() => advanceToNext("mismatch")}
+                        onClick={() => handleClarify(reason)}
                         className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
                       >
                         {reason}
                       </button>
                     ))}
                   </div>
-                </div>
+                )}
               </div>
             </motion.div>
           </>

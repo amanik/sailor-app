@@ -19,7 +19,7 @@ const roiMessages: Record<number, string> = {
 
 type Bucket = "high_roi" | "no_roi" | "unsure";
 type Direction = "left" | "right" | "up" | null;
-type FlowState = "rate" | "classify" | "roi_type" | "no_roi_reason" | "done";
+type FlowState = "classify" | "rate" | "clarify" | "done";
 
 const bucketConfig: Record<Bucket, { label: string; icon: typeof TrendingUp }> = {
   high_roi: { label: "High ROI", icon: TrendingUp },
@@ -42,7 +42,7 @@ export default function BusinessReviewPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<Direction>(null);
-  const [flowState, setFlowState] = useState<FlowState>("rate");
+  const [flowState, setFlowState] = useState<FlowState>("classify");
   const [currentBucket, setCurrentBucket] = useState<Bucket | null>(null);
   const [roiRating, setRoiRating] = useState<number | null>(null);
   const [reviewedLocal, setReviewedLocal] = useState<Array<{ txn: Transaction; bucket: Bucket; roi?: number }>>([]);
@@ -51,23 +51,31 @@ export default function BusinessReviewPage() {
   const current = txnSnapshot[currentIndex] as Transaction | undefined;
   const total = txnSnapshot.length;
 
-  function handleRate(val: number) {
-    setRoiRating(val);
-    setFlowState("classify");
-  }
-
+  // Step 1: Classify — swipe or tap a bucket
   function handleBucket(bucket: Bucket) {
     setCurrentBucket(bucket);
-    if (bucket === "high_roi") {
-      setDirection("right");
-      setTimeout(() => setFlowState("roi_type"), 300);
-    } else if (bucket === "no_roi") {
-      setDirection("left");
-      setTimeout(() => setFlowState("no_roi_reason"), 300);
+    if (bucket === "high_roi") setDirection("right");
+    else if (bucket === "no_roi") setDirection("left");
+    else setDirection("up");
+    // Open bottom sheet for rating
+    setTimeout(() => setFlowState("rate"), 300);
+  }
+
+  // Step 2: Rate — tap stars in bottom sheet
+  function handleRate(val: number) {
+    setRoiRating(val);
+    // If bucket needs clarification, go to step 3. Otherwise advance.
+    if (currentBucket === "high_roi" || currentBucket === "no_roi") {
+      setFlowState("clarify");
     } else {
-      setDirection("up");
-      setTimeout(() => advanceToNext(bucket), 300);
+      // unsure — no clarification needed, advance
+      advanceToNext(currentBucket ?? "unsure", val);
     }
+  }
+
+  // Step 3: Clarify — pick ROI type or no-ROI reason
+  function handleClarify(roiType?: string, noRoiReason?: string) {
+    advanceToNext(currentBucket!, roiRating ?? undefined, roiType, noRoiReason);
   }
 
   function advanceToNext(bucket: Bucket, roi?: number, roiType?: string, noRoiReason?: string) {
@@ -83,7 +91,7 @@ export default function BusinessReviewPage() {
       });
     }
     setDirection(null);
-    setFlowState("rate");
+    setFlowState("classify");
     setCurrentBucket(null);
     setRoiRating(null);
     if (currentIndex + 1 >= total) {
@@ -99,29 +107,24 @@ export default function BusinessReviewPage() {
     dispatch({ type: "UN_REVIEW_TRANSACTION", id: last.txn.id });
     setReviewedLocal((prev) => prev.slice(0, -1));
     setCurrentIndex((i) => Math.max(0, i - 1));
-    setFlowState("rate");
+    setFlowState("classify");
+    setCurrentBucket(null);
     setRoiRating(null);
     setDirection(null);
   }
 
   function handleSwipe(swipeDirection: "left" | "right" | "up") {
-    if (flowState !== "classify") return;
-    if (swipeDirection === "right") {
-      handleBucket("high_roi");
-    } else if (swipeDirection === "left") {
-      handleBucket("no_roi");
-    } else {
-      handleBucket("unsure");
-    }
+    if (swipeDirection === "right") handleBucket("high_roi");
+    else if (swipeDirection === "left") handleBucket("no_roi");
+    else handleBucket("unsure");
   }
 
   function handleDismissSheet() {
     setFlowState("classify");
     setDirection(null);
     setCurrentBucket(null);
+    setRoiRating(null);
   }
-
-  const isClassifying = flowState !== "rate";
 
   if (total === 0 || flowState === "done") {
     const highRoiCount = reviewedLocal.filter((r) => r.bucket === "high_roi").length;
@@ -178,6 +181,8 @@ export default function BusinessReviewPage() {
 
   if (!current) return null;
 
+  const sheetOpen = flowState === "rate" || flowState === "clarify";
+
   return (
     <div className="flex flex-col pb-4 safe-top">
       <div className="h-[60px]" />
@@ -208,7 +213,7 @@ export default function BusinessReviewPage() {
               key={current.id}
               transaction={current}
               direction={direction}
-              onSwipe={isClassifying ? handleSwipe : undefined}
+              onSwipe={flowState === "classify" ? handleSwipe : undefined}
               rightLabel="High ROI"
               leftLabel="No ROI"
               upLabel="Unsure"
@@ -216,60 +221,32 @@ export default function BusinessReviewPage() {
           </AnimatePresence>
         </div>
 
-        {/* Step 1: Rate */}
-        {!isClassifying && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <p className="section-label text-center mb-3">Rate this expense</p>
-            <RatingGauge
-              value={roiRating}
-              onChange={handleRate}
-              min={1}
-              max={4}
-              messages={roiMessages}
-              lowLabel="Low ROI"
-              highLabel="High ROI"
-            />
-          </motion.div>
-        )}
-
-        {/* Step 2: Classify */}
-        {isClassifying && flowState === "classify" && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex flex-col gap-2"
-          >
-            <p className="section-label text-center">Now classify it</p>
-            <div className="flex gap-2">
-              {(["high_roi", "no_roi", "unsure"] as const).map((bucket) => {
-                const config = bucketConfig[bucket];
-                const Icon = config.icon;
-                return (
-                  <button
-                    key={bucket}
-                    onClick={() => handleBucket(bucket)}
-                    className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
-                  >
-                    <Icon className="size-5 text-text-secondary" />
-                    <span className="text-[10px] font-bold text-text-primary">
-                      {config.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
+        {/* Bucket buttons — always visible on classify step */}
+        {flowState === "classify" && (
+          <div className="flex gap-2">
+            {(["high_roi", "no_roi", "unsure"] as const).map((bucket) => {
+              const config = bucketConfig[bucket];
+              const Icon = config.icon;
+              return (
+                <button
+                  key={bucket}
+                  onClick={() => handleBucket(bucket)}
+                  className="flex-1 card p-3 flex flex-col items-center gap-1.5 hover:bg-bg-secondary transition-colors active:scale-95"
+                >
+                  <Icon className="size-5 text-text-secondary" />
+                  <span className="text-[10px] font-bold text-text-primary">
+                    {config.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* ── Bottom Sheet: ROI Type ── */}
+      {/* ── Bottom Sheet: Rate → Clarify ── */}
       <AnimatePresence>
-        {flowState === "roi_type" && current && (
+        {sheetOpen && current && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -292,7 +269,9 @@ export default function BusinessReviewPage() {
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
-                  <p className="section-label">What kind of ROI?</p>
+                  <p className="section-label">
+                    {flowState === "rate" ? "Rate this expense" : currentBucket === "high_roi" ? "What kind of ROI?" : "Why no ROI?"}
+                  </p>
                   <button
                     onClick={handleDismissSheet}
                     className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
@@ -301,75 +280,48 @@ export default function BusinessReviewPage() {
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  {(["time", "money", "emotional", "overhead"] as const).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => advanceToNext("high_roi", roiRating ?? undefined, type)}
-                      className="card p-3 text-left text-sm font-semibold text-text-primary capitalize hover:bg-bg-secondary transition-colors active:scale-[0.98]"
-                    >
-                      {type === "time" ? "Time Multiplier" : type === "money" ? "Money Multiplier" : type === "emotional" ? "Emotional ROI" : "Overhead"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                {/* Step 2: Star rating */}
+                {flowState === "rate" && (
+                  <RatingGauge
+                    value={roiRating}
+                    onChange={handleRate}
+                    min={1}
+                    max={4}
+                    messages={roiMessages}
+                    lowLabel="Low ROI"
+                    highLabel="High ROI"
+                  />
+                )}
 
-      {/* ── Bottom Sheet: No ROI Reason ── */}
-      <AnimatePresence>
-        {flowState === "no_roi_reason" && current && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/40"
-              onClick={handleDismissSheet}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg"
-            >
-              <div className="rounded-t-2xl bg-bg-primary px-4 pb-8 pt-4">
-                <div className="mb-4 flex justify-center">
-                  <div className="h-1 w-10 rounded-full bg-border-secondary" />
-                </div>
+                {/* Step 3: Clarify — ROI type */}
+                {flowState === "clarify" && currentBucket === "high_roi" && (
+                  <div className="flex flex-col gap-2">
+                    {(["time", "money", "emotional", "overhead"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => handleClarify(type)}
+                        className="card p-3 text-left text-sm font-semibold text-text-primary capitalize hover:bg-bg-secondary transition-colors active:scale-[0.98]"
+                      >
+                        {type === "time" ? "Time Multiplier" : type === "money" ? "Money Multiplier" : type === "emotional" ? "Emotional ROI" : "Overhead"}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-                <div className="flex items-center justify-between mb-4">
-                  <p className="section-label">No ROI</p>
-                  <button
-                    onClick={handleDismissSheet}
-                    className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-bg-secondary"
-                  >
-                    <X className="size-4 text-text-tertiary" />
-                  </button>
-                </div>
-
-                <h2 className="text-lg font-bold tracking-tight text-text-primary text-center mb-2">
-                  Why no ROI?
-                </h2>
-                <p className="text-sm text-text-tertiary text-center mb-5">
-                  Understanding helps make better decisions
-                </p>
-
-                <div className="flex flex-col gap-2">
-                  {noRoiReasons.map((reason) => (
-                    <button
-                      key={reason}
-                      onClick={() => advanceToNext("no_roi", undefined, undefined, reason)}
-                      className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
-                    >
-                      {reason}
-                    </button>
-                  ))}
-                </div>
+                {/* Step 3: Clarify — No ROI reason */}
+                {flowState === "clarify" && currentBucket === "no_roi" && (
+                  <div className="flex flex-col gap-2">
+                    {noRoiReasons.map((reason) => (
+                      <button
+                        key={reason}
+                        onClick={() => handleClarify(undefined, reason)}
+                        className="card p-3 text-left text-sm font-semibold text-text-primary hover:bg-bg-secondary transition-colors active:scale-[0.98]"
+                      >
+                        {reason}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           </>

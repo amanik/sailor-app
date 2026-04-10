@@ -3,26 +3,26 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { ReactNode } from "react";
 
-const tabs = ["Personal", "Business"] as const;
+const tabs = ["Overview", "Personal", "Business"] as const;
 export type DashboardTab = (typeof tabs)[number];
 
 interface TabBarProps {
   readonly defaultTab?: DashboardTab;
-  readonly children?: Record<DashboardTab, ReactNode>;
+  readonly children?: Partial<Record<DashboardTab, ReactNode>>;
 }
 
-export function TabBar({ defaultTab = "Personal", children }: TabBarProps) {
+export function TabBar({ defaultTab = "Overview", children }: TabBarProps) {
   return (
     <Tabs defaultValue={defaultTab}>
       <TabsList
-        variant="line"
-        className="w-full justify-center gap-0 px-8"
+        variant="default"
+        className="w-full justify-center gap-0"
       >
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab}
             value={tab}
-            className="flex-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-text-tertiary data-active:text-text-primary"
+            className="flex-1 font-mono text-[11px] font-semibold uppercase tracking-wider"
           >
             {tab}
           </TabsTrigger>

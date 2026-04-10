@@ -5,24 +5,35 @@ interface HalfPieGaugeProps {
   readonly size?: number;
   readonly label?: string;
   readonly subtitle?: string;
+  readonly showDot?: boolean;
 }
 
 /**
  * Semicircular (180-degree) gauge chart showing a score 0-100.
  * Gray background arc with black filled arc proportional to score.
+ * Optional white dot indicator at the score position on the arc.
  */
 export function HalfPieGauge({
   score,
   size = 180,
   label,
   subtitle,
+  showDot = false,
 }: HalfPieGaugeProps) {
   const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
   const strokeWidth = size >= 160 ? 14 : 10;
   const r = (size - strokeWidth) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
   // Half circle: arc length is pi * r
   const halfCircumference = Math.PI * r;
   const filled = (clampedScore / 100) * halfCircumference;
+
+  // Dot position: angle goes from PI (left) to 0 (right)
+  const dotAngle = Math.PI * (1 - clampedScore / 100);
+  const dotX = cx + r * Math.cos(dotAngle);
+  const dotY = cy - r * Math.sin(dotAngle);
+  const dotRadius = strokeWidth / 2 + 2;
 
   return (
     <div className="flex flex-col items-center">
@@ -48,6 +59,17 @@ export function HalfPieGauge({
           strokeLinecap="round"
           strokeDasharray={`${filled} ${halfCircumference}`}
         />
+        {/* White dot indicator at score position */}
+        {showDot && (
+          <circle
+            cx={dotX}
+            cy={dotY}
+            r={dotRadius}
+            fill="white"
+            stroke="var(--color-fg-primary)"
+            strokeWidth={2}
+          />
+        )}
         {/* Score number */}
         <text
           x={size / 2}

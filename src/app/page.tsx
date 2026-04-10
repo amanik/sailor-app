@@ -528,15 +528,15 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
   const mismatchTotal = personalBuckets.find((b) => b.label === "Mismatch")?.value ?? 0;
   const flexSpending = meaningfulTotal + mismatchTotal;
 
-  const reviewedExpenseCount = personalTransactions.filter(
-    (t) => t.reviewed && t.amount > 0 && !t.isTransfer
-  ).length;
-  const totalExpenseCount = personalTransactions.filter(
-    (t) => t.amount > 0 && !t.isTransfer
-  ).length;
-  const hasMinimumReviews =
-    reviewedExpenseCount >= 5 ||
-    (totalExpenseCount > 0 && reviewedExpenseCount / totalExpenseCount >= 0.5);
+  const { reviewedExpenseCount, totalExpenseCount, hasMinimumReviews } = useMemo(() => {
+    const reviewed = personalTransactions.filter((t) => t.reviewed && t.amount > 0 && !t.isTransfer).length;
+    const total = personalTransactions.filter((t) => t.amount > 0 && !t.isTransfer).length;
+    return {
+      reviewedExpenseCount: reviewed,
+      totalExpenseCount: total,
+      hasMinimumReviews: reviewed >= 5 || (total > 0 && reviewed / total >= 0.5),
+    };
+  }, [personalTransactions]);
 
   const { score: joyScore, joyPercentage } = useMemo(
     () => calcJoySpendScore(personalTransactions),
@@ -583,9 +583,10 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
     [accounts]
   );
 
-  const totalExpenses = personalTransactions
-    .filter((t) => t.amount > 0 && !t.isTransfer)
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = useMemo(
+    () => personalTransactions.filter((t) => t.amount > 0 && !t.isTransfer).reduce((sum, t) => sum + t.amount, 0),
+    [personalTransactions]
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -760,15 +761,11 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
     [accounts]
   );
 
-  const bizReviewedCount = businessTransactions.filter(
-    (t) => t.reviewed && t.amount > 0 && !t.isTransfer
-  ).length;
-  const bizTotalExpenseCount = businessTransactions.filter(
-    (t) => t.amount > 0 && !t.isTransfer
-  ).length;
-  const bizHasMinimumReviews =
-    bizReviewedCount >= 5 ||
-    (bizTotalExpenseCount > 0 && bizReviewedCount / bizTotalExpenseCount >= 0.5);
+  const bizHasMinimumReviews = useMemo(() => {
+    const reviewed = businessTransactions.filter((t) => t.reviewed && t.amount > 0 && !t.isTransfer).length;
+    const total = businessTransactions.filter((t) => t.amount > 0 && !t.isTransfer).length;
+    return reviewed >= 5 || (total > 0 && reviewed / total >= 0.5);
+  }, [businessTransactions]);
 
   const { score: roiScore, roiPercentage } = useMemo(
     () => calcRoiOptimizationScore(businessTransactions),

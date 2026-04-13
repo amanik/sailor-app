@@ -2,6 +2,19 @@
 
 All notable changes to Sailor will be documented in this file.
 
+## [0.1.0.1] - 2026-04-13
+
+### Changed
+- Dashboard sections now use full-width stacked rows instead of horizontal scroll carousels
+- Ratio rows show label, status badge, and value in a single full-width row
+- Insight cards, action items, quick wins, and spending intent are all full-width list items
+- Stats row uses inline text layout instead of bordered card grid
+- Increased gauge sizes and section spacing for a more spacious, breathable feel
+- Matches Figma target designs more closely
+
+### Removed
+- DoorDash-style horizontal scroll lanes (cards were cut off and felt cramped)
+
 ## [0.1.0.0] - 2026-04-10
 
 ### Added

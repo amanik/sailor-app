@@ -37,11 +37,9 @@ import {
   groupByBusinessBucket,
 } from "@/lib/scores";
 
-// ─── Horizontal Scroll Lane ─────────────────────────────
-// DoorDash-style: section label + horizontally scrollable cards.
-// Shows ~1.2 cards at a time to hint there's more.
+// ─── Shared Components ──────────────────────────────────
 
-function ScrollLane({
+function Section({
   label,
   children,
 }: {
@@ -51,16 +49,10 @@ function ScrollLane({
   return (
     <section className="flex flex-col gap-2">
       <p className="section-label px-1">{label}</p>
-      <div className="-mx-3 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-3 px-3 snap-x snap-mandatory">
-          {children}
-        </div>
-      </div>
+      {children}
     </section>
   );
 }
-
-// ─── Shared Components ──────────────────────────────────
 
 function StatsRow({
   stats,
@@ -68,12 +60,9 @@ function StatsRow({
   readonly stats: readonly { readonly label: string; readonly value: string }[];
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="flex flex-col gap-0.5 rounded-xl border border-border-secondary bg-bg-primary px-3 py-2.5"
-        >
+    <div className="flex items-baseline justify-between gap-2 px-1">
+      {stats.map((stat, i) => (
+        <div key={stat.label} className={`flex flex-col gap-0.5 ${i === 0 ? "" : "text-center"} ${i === stats.length - 1 ? "text-right" : ""}`}>
           <p className="font-mono text-[9px] font-semibold uppercase tracking-wider text-text-tertiary">
             {stat.label}
           </p>
@@ -86,7 +75,7 @@ function StatsRow({
   );
 }
 
-function RatioCard({
+function RatioRow({
   label,
   value,
   status,
@@ -106,56 +95,57 @@ function RatioCard({
     status === "healthy" ? "HEALTHY" : status === "attention" ? "NEEDS ATTENTION" : "—";
 
   return (
-    <div className="w-[75vw] max-w-[280px] shrink-0 snap-start flex flex-col justify-between rounded-xl border border-border-secondary bg-bg-primary px-4 py-4">
-      <div className="flex flex-col gap-1">
-        <p className="text-[11px] font-medium text-text-secondary">{label}</p>
+    <div className="flex items-center justify-between rounded-xl border border-border-secondary bg-bg-primary px-4 py-3.5">
+      <p className="text-[13px] font-medium text-text-secondary">{label}</p>
+      <div className="flex items-center gap-3">
         <span
-          className={`inline-flex w-fit rounded-full px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider ${badgeClass}`}
+          className={`inline-flex rounded-full px-2 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider ${badgeClass}`}
         >
           {badgeLabel}
         </span>
+        <p className="text-2xl font-bold tracking-tighter text-text-primary tabular-nums min-w-[40px] text-right">
+          {value}
+        </p>
       </div>
-      <p className="mt-3 text-3xl font-bold tracking-tighter text-text-primary tabular-nums">
-        {value}
-      </p>
     </div>
   );
 }
 
-function InsightCard({
+function InsightRow({
   icon: Icon,
   title,
   subtitle,
   value,
+  subvalue,
   href,
 }: {
   readonly icon: typeof TrendingUp;
   readonly title: string;
   readonly subtitle: string;
   readonly value?: string;
+  readonly subvalue?: string;
   readonly href?: string;
 }) {
   const content = (
-    <div className="w-[75vw] max-w-[280px] shrink-0 snap-start flex flex-col gap-3 rounded-xl border border-border-secondary bg-bg-primary px-4 py-4 transition-colors hover:bg-bg-secondary">
-      <div className="flex items-center gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-bg-secondary">
-          <Icon className="size-4 text-text-secondary" />
-        </div>
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <p className="text-[11px] font-semibold text-text-primary truncate">{title}</p>
-          <p className="text-[10px] text-text-tertiary truncate">{subtitle}</p>
-        </div>
+    <div className="flex items-center gap-3 rounded-xl border border-border-secondary bg-bg-primary px-4 py-3.5 transition-colors hover:bg-bg-secondary">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-bg-secondary">
+        <Icon className="size-4 text-text-secondary" />
       </div>
-      {value && (
-        <p className="text-2xl font-bold tracking-tighter text-text-primary tabular-nums">
-          {value}
-        </p>
-      )}
-      {href && (
-        <div className="flex items-center gap-1 text-[10px] font-semibold text-text-tertiary">
-          View details <ChevronRight className="size-3" />
-        </div>
-      )}
+      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <p className="text-[13px] font-semibold text-text-primary truncate">{title}</p>
+        <p className="text-[11px] text-text-tertiary truncate">{subtitle}</p>
+      </div>
+      <div className="flex flex-col items-end gap-0.5 shrink-0">
+        {value && (
+          <p className="text-[15px] font-bold tracking-tight text-text-primary tabular-nums">
+            {value}
+          </p>
+        )}
+        {subvalue && (
+          <p className="font-mono text-[9px] text-text-tertiary">{subvalue}</p>
+        )}
+      </div>
+      {href && <ChevronRight className="size-4 text-text-quaternary shrink-0" />}
     </div>
   );
 
@@ -167,28 +157,36 @@ function InsightCard({
 
 function ActionItemCard({
   title,
+  subtitle,
   count,
   minutes,
   href,
 }: {
   readonly title: string;
+  readonly subtitle?: string;
   readonly count: number;
   readonly minutes: number;
   readonly href: string;
 }) {
   return (
     <Link href={href}>
-      <div className="w-[75vw] max-w-[280px] shrink-0 snap-start flex flex-col gap-3 rounded-xl bg-fg-primary px-4 py-4 transition-transform active:scale-[0.98]">
-        <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-white/10">
-            <Zap className="size-4 text-white" />
-          </div>
-          <p className="text-[11px] font-bold text-white">{title}</p>
+      <div className="flex items-center gap-3 rounded-xl bg-fg-primary px-4 py-4 transition-transform active:scale-[0.98]">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
+          <Zap className="size-4 text-white" />
         </div>
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-[9px] text-white/50">
-            {count} items · ~{minutes} min
-          </p>
+        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+          <p className="text-[13px] font-bold text-white">{title}</p>
+          {subtitle && (
+            <p className="text-[11px] text-white/60">{subtitle}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[9px] font-semibold text-white/70">
+            {count} items
+          </span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[9px] font-semibold text-white/70">
+            ~{minutes} min
+          </span>
           <ChevronRight className="size-4 text-white/40" />
         </div>
       </div>
@@ -196,7 +194,7 @@ function ActionItemCard({
   );
 }
 
-function QuickWinCard({
+function QuickWinRow({
   merchantName,
   saveAmount,
   isRecurring,
@@ -208,15 +206,15 @@ function QuickWinCard({
   readonly frequency?: string;
 }) {
   return (
-    <div className="w-[75vw] max-w-[280px] shrink-0 snap-start flex items-center gap-3 rounded-xl border border-border-secondary bg-bg-primary px-4 py-4">
+    <div className="flex items-center gap-3 rounded-xl border border-border-secondary bg-bg-primary px-4 py-3.5">
       <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-bg-secondary">
         <Scissors className="size-4 text-text-secondary" />
       </div>
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <p className="text-[11px] font-semibold text-text-primary truncate">
+        <p className="text-[13px] font-semibold text-text-primary truncate">
           {isRecurring ? "Cancel" : "Cut"} {merchantName}
         </p>
-        <p className="text-[10px] text-text-tertiary">
+        <p className="text-[11px] text-text-tertiary">
           {isRecurring && frequency === "monthly"
             ? `Save ${saveAmount}/mo`
             : `Save ${saveAmount}`}
@@ -227,7 +225,7 @@ function QuickWinCard({
   );
 }
 
-function SpendingIntentCard({
+function SpendingIntentRow({
   icon: Icon,
   label,
   value,
@@ -239,30 +237,24 @@ function SpendingIntentCard({
   readonly rating?: number;
 }) {
   return (
-    <div className="w-[60vw] max-w-[220px] shrink-0 snap-start flex flex-col gap-2 rounded-xl border border-border-secondary bg-bg-primary p-4">
-      <div className="flex items-center gap-2">
-        <Icon className="size-4 text-text-secondary" />
-        <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">
-          {label}
-        </span>
+    <div className="flex items-center gap-3 rounded-xl border border-border-secondary bg-bg-primary px-4 py-3.5">
+      <Icon className="size-4 text-text-secondary shrink-0" />
+      <span className="text-[13px] font-medium text-text-primary flex-1">{label}</span>
+      <div className="flex items-center gap-3 shrink-0">
+        {rating != null && (
+          <div className="flex items-center gap-1">
+            <Star className="size-3 text-text-tertiary fill-text-tertiary" />
+            <span className="font-mono text-[10px] font-semibold text-text-tertiary tabular-nums">
+              {rating}/4
+            </span>
+          </div>
+        )}
+        <p className="text-[15px] font-bold tracking-tight text-text-primary tabular-nums">
+          {value}
+        </p>
       </div>
-      <p className="text-xl font-bold tracking-tight text-text-primary tabular-nums">
-        {value}
-      </p>
-      {rating != null && (
-        <div className="flex items-center gap-1">
-          <Star className="size-3 text-text-tertiary fill-text-tertiary" />
-          <span className="font-mono text-[10px] font-semibold text-text-tertiary tabular-nums">
-            {rating}/4
-          </span>
-        </div>
-      )}
     </div>
   );
-}
-
-function SectionLabel({ children }: { readonly children: string }) {
-  return <p className="section-label px-1">{children}</p>;
 }
 
 // ─── Overview Tab ────────────────────────────────────────
@@ -353,19 +345,19 @@ function OverviewContent({ monthKey }: { readonly monthKey: string }) {
   const hasActions = bizUnreviewed > 0 || personalUnreviewed > 0;
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Spend Score — hero, stays full-width */}
-      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-5 shadow-sm">
+    <div className="flex flex-col gap-6">
+      {/* Spend Score — hero */}
+      <section className="flex flex-col items-center gap-2 py-2">
         <p className="section-label">Spend Score</p>
         <HalfPieGauge
           score={spendScore}
-          size={180}
+          size={200}
           label="OVERALL"
           showDot
         />
       </section>
 
-      {/* Stats Row — compact, stays full-width */}
+      {/* Stats Row — inline text */}
       <StatsRow
         stats={[
           { label: "Money In", value: formatCurrency(totalIncome) },
@@ -374,98 +366,96 @@ function OverviewContent({ monthKey }: { readonly monthKey: string }) {
         ]}
       />
 
-      {/* Financial Ratios — horizontal scroll */}
-      <ScrollLane label="Financial Health">
-        <RatioCard
-          label="Income to Spend"
-          value={incomeToSpend.toFixed(1)}
-          status={incomeStatus}
-        />
-        <RatioCard
-          label="Savings to Spend"
-          value={savingsToSpend.toFixed(1)}
-          status={savingsStatus}
-        />
-        {/* Trailing spacer so last card can snap cleanly */}
-        <div className="w-1 shrink-0" />
-      </ScrollLane>
+      {/* Financial Ratios — full-width rows */}
+      <Section label="Financial Health">
+        <div className="flex flex-col gap-2">
+          <RatioRow
+            label="Income to Spend"
+            value={incomeToSpend.toFixed(1)}
+            status={incomeStatus}
+          />
+          <RatioRow
+            label="Savings to Spend"
+            value={savingsToSpend.toFixed(1)}
+            status={savingsStatus}
+          />
+        </div>
+      </Section>
 
-      {/* Key Insights — horizontal scroll */}
-      {hasInsights && (
-        <ScrollLane label="Key Insights">
-          {highRoiBucket && highRoiBucket.count > 0 && (
-            <InsightCard
-              icon={TrendingUp}
-              title="High ROI Spend"
-              subtitle={`${highRoiBucket.count} transactions driving growth`}
-              value={formatCurrency(highRoiBucket.value)}
-              href="/insights/business/high-roi"
-            />
-          )}
-          {noRoiBucket && noRoiBucket.count > 0 && (
-            <InsightCard
-              icon={TrendingDown}
-              title="Potential Savings"
-              subtitle={`${noRoiBucket.count} low-return expenses`}
-              value={formatCurrency(noRoiBucket.value)}
-              href="/insights/business/no-roi"
-            />
-          )}
-          {mismatchBucket && mismatchBucket.count > 0 && (
-            <InsightCard
-              icon={AlertTriangle}
-              title="Spending Mismatches"
-              subtitle={`${mismatchBucket.count} impulse or misaligned buys`}
-              value={formatCurrency(mismatchBucket.value)}
-              href="/insights/personal/mismatch"
-            />
-          )}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
-      )}
-
-      {!hasInsights && (
-        <section className="flex flex-col gap-2">
-          <SectionLabel>Key Insights</SectionLabel>
+      {/* Key Insights — full-width stacked rows */}
+      {hasInsights ? (
+        <Section label="Key Insights">
+          <div className="flex flex-col gap-2">
+            {highRoiBucket && highRoiBucket.count > 0 && (
+              <InsightRow
+                icon={TrendingUp}
+                title="High ROI Spend"
+                subtitle={`${highRoiBucket.count} transactions driving growth`}
+                value={formatCurrency(highRoiBucket.value)}
+                href="/insights/business/high-roi"
+              />
+            )}
+            {noRoiBucket && noRoiBucket.count > 0 && (
+              <InsightRow
+                icon={TrendingDown}
+                title="Potential Savings"
+                subtitle={`${noRoiBucket.count} low-return expenses`}
+                value={formatCurrency(noRoiBucket.value)}
+                href="/insights/business/no-roi"
+              />
+            )}
+            {mismatchBucket && mismatchBucket.count > 0 && (
+              <InsightRow
+                icon={AlertTriangle}
+                title="Spending Mismatches"
+                subtitle={`${mismatchBucket.count} impulse or misaligned buys`}
+                value={formatCurrency(mismatchBucket.value)}
+                href="/insights/personal/mismatch"
+              />
+            )}
+          </div>
+        </Section>
+      ) : (
+        <Section label="Key Insights">
           <div className="rounded-xl border border-border-secondary bg-bg-primary px-4 py-6 text-center">
             <p className="text-[11px] text-text-tertiary">
               Review your transactions to unlock insights
             </p>
           </div>
-        </section>
+        </Section>
       )}
 
-      {/* Action Items — horizontal scroll */}
-      {hasActions && (
-        <ScrollLane label="Action Items">
-          {bizUnreviewed > 0 && (
-            <ActionItemCard
-              title="Review Business Expenses"
-              count={bizUnreviewed}
-              minutes={Math.max(1, Math.round(bizUnreviewed * 0.3))}
-              href="/review/business"
-            />
-          )}
-          {personalUnreviewed > 0 && (
-            <ActionItemCard
-              title="Review Personal Expenses"
-              count={personalUnreviewed}
-              minutes={Math.max(1, Math.round(personalUnreviewed * 0.3))}
-              href="/review/personal"
-            />
-          )}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
-      )}
-
-      {!hasActions && (
-        <section className="flex flex-col gap-2">
-          <SectionLabel>Action Items</SectionLabel>
+      {/* Action Items — full-width dark cards */}
+      {hasActions ? (
+        <Section label="Action Items">
+          <div className="flex flex-col gap-2">
+            {bizUnreviewed > 0 && (
+              <ActionItemCard
+                title="Review Business Expenses"
+                subtitle="Swipe to categorize ROI"
+                count={bizUnreviewed}
+                minutes={Math.max(1, Math.round(bizUnreviewed * 0.3))}
+                href="/review/business"
+              />
+            )}
+            {personalUnreviewed > 0 && (
+              <ActionItemCard
+                title="Review Personal Expenses"
+                subtitle="Swipe to categorize spending"
+                count={personalUnreviewed}
+                minutes={Math.max(1, Math.round(personalUnreviewed * 0.3))}
+                href="/review/personal"
+              />
+            )}
+          </div>
+        </Section>
+      ) : (
+        <Section label="Action Items">
           <div className="rounded-xl border border-border-secondary bg-bg-primary px-4 py-5 text-center">
             <p className="text-sm font-bold text-text-primary">All caught up</p>
             <p className="mt-1 text-[10px] text-text-tertiary">No pending reviews</p>
           </div>
-        </section>
+        </Section>
       )}
     </div>
   );
@@ -589,15 +579,15 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Review CTA — full width */}
+    <div className="flex flex-col gap-6">
+      {/* Review CTA */}
       <ReviewCTA
         unreviewedCount={unreviewedCount}
         estimatedMinutes={Math.max(1, Math.round(unreviewedCount * 0.3))}
         type="personal"
       />
 
-      {/* Stats Row — full width, compact */}
+      {/* Stats Row */}
       <StatsRow
         stats={[
           { label: "Take Home", value: formatCurrency(income) },
@@ -606,13 +596,13 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
         ]}
       />
 
-      {/* Joy Spend Score — hero, full width */}
-      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
+      {/* Joy Spend Score — hero */}
+      <section className="flex flex-col items-center gap-2 py-2">
         <p className="section-label">Joy Spend Score</p>
         {hasMinimumReviews ? (
           <HalfPieGauge
             score={joyScore}
-            size={140}
+            size={160}
             subtitle={`${joyPercentage}% towards meaningful spend`}
             showDot
           />
@@ -626,77 +616,80 @@ function PersonalContent({ monthKey }: { readonly monthKey: string }) {
         )}
       </section>
 
-      {/* Spending Intent — horizontal scroll */}
+      {/* Spending Intent — full-width rows */}
       {meaningCategories.length > 0 && (
-        <ScrollLane label="Spending Intent">
-          {meaningCategories.map((cat) => {
-            const Icon = intentIcons[cat.label] ?? Heart;
-            const avgRating = categoryRatings[cat.label];
-            return (
-              <SpendingIntentCard
-                key={cat.label}
-                icon={Icon}
-                label={cat.label.split(" & ")[0]}
-                value={formatCurrency(cat.value)}
-                rating={avgRating}
-              />
-            );
-          })}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
+        <Section label="Spending Intent">
+          <div className="flex flex-col gap-2">
+            {meaningCategories.map((cat) => {
+              const Icon = intentIcons[cat.label] ?? Heart;
+              const avgRating = categoryRatings[cat.label];
+              return (
+                <SpendingIntentRow
+                  key={cat.label}
+                  icon={Icon}
+                  label={cat.label}
+                  value={formatCurrency(cat.value)}
+                  rating={avgRating}
+                />
+              );
+            })}
+          </div>
+        </Section>
       )}
 
-      {/* Key Insights — horizontal scroll */}
+      {/* Key Insights — full-width rows */}
       {personalBuckets.length > 0 && (
-        <ScrollLane label="Key Insights">
-          {personalBuckets.map((bucket) => {
-            const icon =
-              bucket.label === "Essential"
-                ? Sparkles
-                : bucket.label === "Meaningful"
-                  ? Star
-                  : AlertTriangle;
-            return (
-              <InsightCard
-                key={bucket.label}
-                icon={icon}
-                title={`${bucket.label} Spending`}
-                subtitle={`${bucket.count} transactions`}
-                value={formatCurrency(bucket.value)}
-              />
-            );
-          })}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
+        <Section label="Key Insights">
+          <div className="flex flex-col gap-2">
+            {personalBuckets.map((bucket) => {
+              const icon =
+                bucket.label === "Essential"
+                  ? Sparkles
+                  : bucket.label === "Meaningful"
+                    ? Star
+                    : AlertTriangle;
+              return (
+                <InsightRow
+                  key={bucket.label}
+                  icon={icon}
+                  title={`${bucket.label} Spending`}
+                  subtitle={`${bucket.count} transactions`}
+                  value={formatCurrency(bucket.value)}
+                />
+              );
+            })}
+          </div>
+        </Section>
       )}
 
-      {/* Quick Wins — horizontal scroll */}
+      {/* Quick Wins — full-width rows */}
       {mismatchTxns.length > 0 && (
-        <ScrollLane label="Quick Wins">
-          {mismatchTxns.map((txn) => (
-            <QuickWinCard
-              key={txn.id}
-              merchantName={txn.merchantName}
-              saveAmount={formatCurrency(txn.amount)}
-              isRecurring={txn.isRecurring}
-              frequency={txn.recurringFrequency}
-            />
-          ))}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
+        <Section label="Quick Wins">
+          <div className="flex flex-col gap-2">
+            {mismatchTxns.map((txn) => (
+              <QuickWinRow
+                key={txn.id}
+                merchantName={txn.merchantName}
+                saveAmount={formatCurrency(txn.amount)}
+                isRecurring={txn.isRecurring}
+                frequency={txn.recurringFrequency}
+              />
+            ))}
+          </div>
+        </Section>
       )}
 
-      {/* Action Items — horizontal scroll */}
+      {/* Action Items */}
       {unreviewedCount > 0 && (
-        <ScrollLane label="Action Items">
+        <Section label="Action Items">
           <ActionItemCard
             title="Review Personal Expenses"
+            subtitle="Swipe to categorize spending"
             count={unreviewedCount}
             minutes={Math.max(1, Math.round(unreviewedCount * 0.3))}
             href="/review/personal"
           />
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
+        </Section>
       )}
     </div>
   );
@@ -781,15 +774,15 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
   const profit = revenue - expenses;
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Review CTA — full width */}
+    <div className="flex flex-col gap-6">
+      {/* Review CTA */}
       <ReviewCTA
         unreviewedCount={unreviewedCount}
         estimatedMinutes={Math.max(1, Math.round(unreviewedCount * 0.3))}
         type="business"
       />
 
-      {/* Stats Row — full width */}
+      {/* Stats Row */}
       <StatsRow
         stats={[
           { label: "Revenue", value: formatCurrency(revenue) },
@@ -798,13 +791,13 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
         ]}
       />
 
-      {/* ROI Score — hero, full width */}
-      <section className="flex flex-col items-center gap-1 rounded-xl border border-border-secondary bg-bg-primary py-4 shadow-sm">
+      {/* ROI Score — hero */}
+      <section className="flex flex-col items-center gap-2 py-2">
         <p className="section-label">ROI Optimization Score</p>
         {bizHasMinimumReviews ? (
           <HalfPieGauge
             score={roiScore}
-            size={140}
+            size={160}
             subtitle={`${roiPercentage}% towards high-ROI spend`}
             showDot
           />
@@ -818,42 +811,43 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
         )}
       </section>
 
-      {/* Spend Breakdown — horizontal scroll */}
+      {/* Spend Breakdown — full-width rows */}
       {businessBuckets.length > 0 ? (
-        <ScrollLane label="Spend Breakdown">
-          {businessBuckets.map((bucket) => {
-            const icon =
-              bucket.label === "High ROI"
-                ? TrendingUp
-                : bucket.label === "No ROI"
-                  ? TrendingDown
-                  : AlertTriangle;
-            const pct =
-              expenses > 0 ? Math.round((bucket.value / expenses) * 100) : 0;
-            return (
-              <InsightCard
-                key={bucket.label}
-                icon={icon}
-                title={bucket.label}
-                subtitle={`${bucket.count} transactions · ${pct}%`}
-                value={formatCurrency(bucket.value)}
-              />
-            );
-          })}
-          <div className="w-1 shrink-0" />
-        </ScrollLane>
+        <Section label="Spend Breakdown">
+          <div className="flex flex-col gap-2">
+            {businessBuckets.map((bucket) => {
+              const icon =
+                bucket.label === "High ROI"
+                  ? TrendingUp
+                  : bucket.label === "No ROI"
+                    ? TrendingDown
+                    : AlertTriangle;
+              const pct =
+                expenses > 0 ? Math.round((bucket.value / expenses) * 100) : 0;
+              return (
+                <InsightRow
+                  key={bucket.label}
+                  icon={icon}
+                  title={bucket.label}
+                  subtitle={`${bucket.count} transactions`}
+                  value={formatCurrency(bucket.value)}
+                  subvalue={`${pct}%`}
+                />
+              );
+            })}
+          </div>
+        </Section>
       ) : (
-        <section className="flex flex-col gap-2">
-          <SectionLabel>Spend Breakdown</SectionLabel>
+        <Section label="Spend Breakdown">
           <div className="rounded-xl border border-border-secondary bg-bg-primary px-4 py-6 text-center">
             <p className="text-[11px] text-text-tertiary">
               Review transactions to see breakdown
             </p>
           </div>
-        </section>
+        </Section>
       )}
 
-      {/* Cash Position — full width */}
+      {/* Cash Position */}
       <StatsRow
         stats={[
           { label: "Money In", value: formatCurrency(revenue) },
@@ -862,32 +856,35 @@ function BusinessContent({ monthKey }: { readonly monthKey: string }) {
         ]}
       />
 
-      {/* Action Items — horizontal scroll */}
-      <ScrollLane label="Action Items">
-        {unreviewedCount > 0 && (
-          <ActionItemCard
-            title="Review Business Expenses"
-            count={unreviewedCount}
-            minutes={Math.max(1, Math.round(unreviewedCount * 0.3))}
-            href="/review/business"
-          />
-        )}
-        {unsureBucket && unsureBucket.count > 0 && (
-          <ActionItemCard
-            title="Resolve Unsure Transactions"
-            count={unsureBucket.count}
-            minutes={Math.max(1, Math.round(unsureBucket.count * 0.2))}
-            href="/insights/unsure-review"
-          />
-        )}
-        {unreviewedCount === 0 && (!unsureBucket || unsureBucket.count === 0) && (
-          <div className="w-[75vw] max-w-[280px] shrink-0 snap-start rounded-xl border border-border-secondary bg-bg-primary px-4 py-5 text-center">
-            <p className="text-sm font-bold text-text-primary">All caught up</p>
-            <p className="mt-1 text-[10px] text-text-tertiary">No pending reviews</p>
-          </div>
-        )}
-        <div className="w-1 shrink-0" />
-      </ScrollLane>
+      {/* Action Items — full-width dark cards */}
+      <Section label="Action Items">
+        <div className="flex flex-col gap-2">
+          {unreviewedCount > 0 && (
+            <ActionItemCard
+              title="Review Business Expenses"
+              subtitle="Swipe to categorize ROI"
+              count={unreviewedCount}
+              minutes={Math.max(1, Math.round(unreviewedCount * 0.3))}
+              href="/review/business"
+            />
+          )}
+          {unsureBucket && unsureBucket.count > 0 && (
+            <ActionItemCard
+              title="Resolve Unsure Transactions"
+              subtitle="Re-review unsure expenses"
+              count={unsureBucket.count}
+              minutes={Math.max(1, Math.round(unsureBucket.count * 0.2))}
+              href="/insights/unsure-review"
+            />
+          )}
+          {unreviewedCount === 0 && (!unsureBucket || unsureBucket.count === 0) && (
+            <div className="rounded-xl border border-border-secondary bg-bg-primary px-4 py-5 text-center">
+              <p className="text-sm font-bold text-text-primary">All caught up</p>
+              <p className="mt-1 text-[10px] text-text-tertiary">No pending reviews</p>
+            </div>
+          )}
+        </div>
+      </Section>
     </div>
   );
 }
